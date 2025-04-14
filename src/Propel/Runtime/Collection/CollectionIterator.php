@@ -13,13 +13,12 @@ use ArrayIterator;
 /**
  * Iterator class for iterating over Collection data
  *
- * @template RowFormat
  * @extends \ArrayIterator<(int|string), mixed>
  */
 class CollectionIterator extends ArrayIterator implements IteratorInterface
 {
     /**
-     * @var \Propel\Runtime\Collection\Collection<RowFormat>
+     * @var \Propel\Runtime\Collection\Collection
      */
     protected Collection $collection;
 
@@ -31,7 +30,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     /**
      * Constructor
      *
-     * @param \Propel\Runtime\Collection\Collection<RowFormat> $collection
+     * @param \Propel\Runtime\Collection\Collection $collection
      */
     public function __construct(Collection $collection)
     {
@@ -44,7 +43,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     /**
      * Returns the collection instance
      *
-     * @return \Propel\Runtime\Collection\Collection<RowFormat>
+     * @return \Propel\Runtime\Collection\Collection
      */
     public function getCollection(): Collection
     {
@@ -82,7 +81,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @psalm-suppress ReservedWord
      *
-     * @return RowFormat|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function getFirst()
@@ -111,7 +110,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @psalm-suppress ReservedWord
      *
-     * @return RowFormat|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function getPrevious()
@@ -130,7 +129,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @psalm-suppress ReservedWord
      *
-     * @return RowFormat|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function getCurrent()
@@ -144,7 +143,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @psalm-suppress ReservedWord
      *
-     * @return RowFormat|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function getNext()
@@ -160,7 +159,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @psalm-suppress ReservedWord
      *
-     * @return RowFormat|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function getLast()
@@ -210,32 +209,32 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     }
 
     /**
-     * @param string $offset
-     * @param RowFormat $value
+     * @param string $index
+     * @param string $value
      *
      * @return void
      */
-    public function offsetSet($offset, $value): void
+    public function offsetSet($index, $value): void
     {
-        $this->collection->offsetSet($offset, $value);
-        parent::offsetSet($offset, $value);
+        $this->collection->offsetSet($index, $value);
+        parent::offsetSet($index, $value);
         $this->refreshPositions();
     }
 
     /**
-     * @param string $offset
+     * @param string $index
      *
      * @return void
      */
-    public function offsetUnset($offset): void
+    public function offsetUnset($index): void
     {
-        $this->collection->offsetUnset($offset);
-        parent::offsetUnset($offset);
+        $this->collection->offsetUnset($index);
+        parent::offsetUnset($index);
         $this->refreshPositions();
     }
 
     /**
-     * @param RowFormat $value
+     * @param mixed $value
      *
      * @return void
      */
@@ -275,28 +274,28 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     }
 
     /**
-     * @param callable $cmp_function
+     * @param callable $callback
      *
      * @return true
      */
     #[\ReturnTypeWillChange]
-    public function uasort($cmp_function): bool
+    public function uasort($callback): bool
     {
-        parent::uasort($cmp_function);
+        parent::uasort($callback);
         $this->refreshPositions();
 
         return true;
     }
 
     /**
-     * @param callable $cmp_function
+     * @param callable $callback
      *
      * @return true
      */
     #[\ReturnTypeWillChange]
-    public function uksort($cmp_function): bool
+    public function uksort($callback): bool
     {
-        parent::uksort($cmp_function);
+        parent::uksort($callback);
         $this->refreshPositions();
 
         return true;
