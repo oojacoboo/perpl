@@ -2073,8 +2073,6 @@ $indent};";
      * by the Persistent interface (or used by the templates). Hence, this method is also
      * deprecated.
      *
-     * @deprecated Not needed anymore.
-     *
      * @param string $script The script will be modified in this method.
      *
      * @return void
@@ -3063,18 +3061,23 @@ $indent};";
                 //if ( $fk->getTable()->getName() != $table->getName() ) {
 
                 if ($fk->isLocalPrimaryKey()) {
-                    $afx = $this->getRefFKPhpNameAffix($fk, false);
+                    $afx = $fk->getIdentifierReversed();
                     $script .= "
             \$relObj = \$this->get$afx();
             if (\$relObj) {
                 \$copyObj->set$afx(\$relObj->copy(\$deepCopy));
             }";
-                } else {
+                } elseif ($fk->getForeignTable() === $fk->getTable()) {
                     $script .= "
             foreach (\$this->get" . $this->getRefFKPhpNameAffix($fk, true) . "() as \$relObj) {
                 if (\$relObj !== \$this) {// ensure that we don't try to copy a reference to ourselves
-                    \$copyObj->add" . $this->getRefFKPhpNameAffix($fk) . "(\$relObj->copy(\$deepCopy));
+                    \$copyObj->add" . $fk->getIdentifierReversed() . "(\$relObj->copy(\$deepCopy));
                 }
+            }";
+                } else {
+                    $script .= "
+            foreach (\$this->get" . $this->getRefFKPhpNameAffix($fk, true) . "() as \$relObj) {
+                \$copyObj->add" . $fk->getIdentifierReversed() . "(\$relObj->copy(\$deepCopy));
             }";
                 }
                 // HL: commenting out close of self-referential check
