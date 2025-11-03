@@ -8,11 +8,13 @@
 
 namespace Propel\Generator\Builder\Util;
 
+use DateTimeInterface;
 use Propel\Generator\Builder\BuilderFactory\BuilderFactory;
 use Propel\Generator\Builder\Om\AbstractOMBuilder;
 use Propel\Generator\Config\GeneratorConfigInterface;
 use Propel\Generator\Exception\LogicException;
 use Propel\Generator\Model\ForeignKey;
+use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
 
 class ReferencedClasses
@@ -386,5 +388,30 @@ class ReferencedClasses
         asort($usedClasses, SORT_STRING | SORT_FLAG_CASE);
 
         return implode("\n", $usedClasses) . "\n";
+    }
+
+    /**
+     * Register classes in builder from a doc type string.
+     *
+     * A string like 'DateTimeImmutable|string|null' would register DateTimeImmutable.
+     *
+     * @param string $docType
+     *
+     * @return string
+     */
+    public function resolveTypeHintFromDocType(string $docType): string
+    {
+        $types = explode('|', $docType);
+        foreach ($types as $key => $typeName) {
+            if (!PropelTypes::isPhpObjectType($typeName)) {
+                continue;
+            }
+            if (is_subclass_of($typeName, DateTimeInterface::class)) {
+                $typeName = DateTimeInterface::class;
+            }
+            $types[$key] = $this->registerClassByFullyQualifiedName($typeName);
+        }
+
+        return implode('|', array_unique($types));
     }
 }
