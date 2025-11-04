@@ -234,14 +234,14 @@ class QueryBuilder extends AbstractOMBuilder
             }
         }
         foreach ($this->getTable()->getForeignKeys() as $fk) {
-            $this->addFilterByFK($script, $fk);
+            $this->addFilterByFk($script, $fk);
             $this->addJoinFk($script, $fk);
-            $this->addUseFKQuery($script, $fk);
+            $this->addUseFkQuery($script, $fk);
         }
         foreach ($this->getTable()->getReferrers() as $refFK) {
-            $this->addFilterByRefFK($script, $refFK);
+            $this->addFilterByRefFk($script, $refFK);
             $this->addJoinRefFk($script, $refFK);
-            $this->addUseRefFKQuery($script, $refFK);
+            $this->addUseRefFkQuery($script, $refFK);
         }
         foreach ($this->getTable()->getCrossRelations() as $crossFKs) {
             $this->addFilterByCrossFK($script, $crossFKs);
@@ -905,7 +905,7 @@ class QueryBuilder extends AbstractOMBuilder
      *
      * @param array \$keys The list of primary key values to use for the query
      *
-     * @return \$this
+     * @return static
      */
     public function filterByPrimaryKeys(array \$keys)
     {";
@@ -930,18 +930,21 @@ class QueryBuilder extends AbstractOMBuilder
             // composite primary key
             $script .= "
         if (!\$keys) {
-            \$this->addFilter(null, '1<>1', Criteria::CUSTOM);
+            return \$this->addAnd('1<>1');
+        }\n";
 
-            return \$this;
-        }
+            foreach ($pks as $i => $col) {
+                $script .= "
+        \$resolvedColumn$i = \$this->resolveLocalColumnByName('{$col->getName()}');";
+            }
+            $script .= "
+
         foreach (\$keys as \$key) {";
             $i = 0;
             foreach ($pks as $i => $col) {
-                $colName = $col->getName();
-                $addOp = ($i === 0) ? '$this->addOr($filter0);' : "\$filter0->addAnd(\$filter$i);";
                 ($i > 0) && $script .= "\n";
+                $addOp = ($i === 0) ? '$this->addOr($filter0);' : "\$filter0->addAnd(\$filter$i);";
                 $script .= "
-            \$resolvedColumn$i = \$this->resolveLocalColumnByName('$colName');
             \$filter$i = \$this->buildFilter(\$resolvedColumn$i, \$key[$i], Criteria::EQUAL);
             {$addOp}";
             }
@@ -1128,7 +1131,7 @@ class QueryBuilder extends AbstractOMBuilder
         } elseif (\$comparison == Criteria::CONTAINS_NONE) {
             \$resolvedColumn = \$this->resolveLocalColumnByName('$colName');
             if (\${$variableName} !== 0) {
-                \$this->addFilter(\$resolvedColumn, \${$variableName}, Criteria::BINARY_NONE);
+                \$this->addAnd(\$resolvedColumn, \${$variableName}, Criteria::BINARY_NONE);
             }
             \$this->addOr(\$resolvedColumn, null, Criteria::ISNULL);
 
@@ -1388,7 +1391,7 @@ class QueryBuilder extends AbstractOMBuilder
                 ->addUsingOperator(\$this->resolveLocalColumnByName('$columnName'), $rightValue, \$comparison)";
             } else {
                 $leftValue = var_export($localValueOrColumn, true);
-                $bindingType = $foreignColumn->getPDOType();
+                $bindingType = $foreignColumn->getPdoType();
                 $script .= "
                 ->where(\"$leftValue = ?\", $rightValue, $bindingType)";
             }
