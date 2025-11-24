@@ -118,14 +118,17 @@ class ConfigurationManager
      * is expressed by:
      * <code>'database.adapter.mysql.tableType</code>
      *
+     * @psalm-return ($isRequired ? array|int|bool|string : array|scalar|null)
+     *
      * @param string $path The name of property, expressed as a dot separated level hierarchy
      * @param bool $isRequired
      *
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
      * @throws \Propel\Common\Config\Exception\InvalidArgumentException
      *
-     * @return array|scalar|null The configuration property
+     * @return array|string|int|bool|null The configuration property
      */
-    public function getConfigProperty(string $path, bool $isRequired = false): mixed
+    public function getConfigProperty(string $path, bool $isRequired = false): array|int|bool|string|null
     {
         if ($path === '') {
             throw new InvalidArgumentException('Invalid empty configuration property name.');
@@ -141,13 +144,51 @@ class ConfigurationManager
             }
 
             if ($isRequired) {
-                throw new InvalidArgumentException("Cannot resolve config property '$path': No value at '$key'");
+                throw new InvalidConfigurationException("Cannot resolve config property '$path': No value at '$key'");
             }
 
             return null;
         }
 
+        if ($isRequired && ($section === null || $section === '')) {
+            throw new InvalidConfigurationException("Required config property '$path' cannot be empty, but is: " . var_export($section, true));
+        }
+
         return $section;
+    }
+
+    /**
+     * Type-safe access of {@see static::getConfigProperty()}.
+     *
+     * @psalm-return ($isRequired ? string : string|null)
+     *
+     * @param string $path The name of property, expressed as a dot separated level hierarchy
+     * @param bool $isRequired
+     *
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     *
+     * @return string|null The configuration property
+     */
+    public function getConfigPropertyString(string $path, bool $isRequired = false): string|null
+    {
+        $val = $this->getConfigProperty($path, $isRequired);
+        if ($val === null || is_string($val)) {
+            return $val;
+        }
+
+        throw new InvalidConfigurationException("Configuration item `$path` is expected to contain a string, but is " . var_export($val, true));
+    }
+
+    /**
+     * Return a specific configuration property.
+     *
+     * @param string $path The name of property, expressed as a dot separated level hierarchy
+     *
+     * @return array|string|int|bool The configuration property
+     */
+    public function getConfigPropertyRequired(string $path): array|int|bool|string
+    {
+        return $this->getConfigProperty($path, true) ?? '';
     }
 
     /**
@@ -235,7 +276,7 @@ class ConfigurationManager
         try {
             $this->config = $processor->processConfiguration($configuration, $this->config);
         } catch (SymfonyInvalidConfigurationException $e) {
-            throw new InvalidConfigurationException('Could not process configuration. Please check the property in error message: ' . $e->getMessage());
+            throw new InvalidConfigurationException('Configuration Error: ' . $e->getMessage());
         }
         $this->cleanupSlaveConnections();
         $this->cleanupConnections();

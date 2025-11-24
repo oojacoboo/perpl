@@ -11,6 +11,7 @@ namespace Propel\Generator\Command;
 use Propel\Generator\Config\GeneratorConfig;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -102,6 +103,24 @@ abstract class AbstractCommand extends Command
         }
 
         return iterator_to_array($finder->files());
+    }
+
+    /**
+     * @param \Propel\Generator\Config\GeneratorConfig $generatorConfig
+     *
+     * @throws \Symfony\Component\Console\Exception\MissingInputException
+     *
+     * @return array
+     */
+    protected function getSchemasFromConfig(GeneratorConfig $generatorConfig): array
+    {
+        $schemaDir = $generatorConfig->getConfigPropertyString('paths.schemaDir');
+        if (!$schemaDir) {
+            throw new MissingInputException('Path to schema directory is missing. Use the --schema-dir option or the propel.paths.schemaDir configuration property to set it.');
+        }
+        $recursive = (bool)$generatorConfig->getConfigProperty('generator.recursive');
+
+        return $this->getSchemas($schemaDir, $recursive);
     }
 
     /**

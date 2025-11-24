@@ -176,16 +176,26 @@ abstract class DataModelBuilder
      * <code>'database.adapter.mysql.tableType</code>
      *
      * @param string $name
+     * @param bool $isRequired
+     *
+     * @return array|scalar|null
+     */
+    public function getBuildProperty(string $name, bool $isRequired = false): mixed
+    {
+        return $this->getGeneratorConfig()?->getConfigProperty($name, $isRequired);
+    }
+
+    /**
+     * @psalm-return ($isRequired ? string : string|null)
+     *
+     * @param string $name
+     * @param bool $isRequired
      *
      * @return string|null
      */
-    public function getBuildProperty(string $name): ?string
+    public function getBuildPropertyString(string $name, bool $isRequired = false): string|null
     {
-        if ($this->getGeneratorConfig()) {
-            return $this->getGeneratorConfig()->getConfigProperty($name);
-        }
-
-        return null;
+        return $this->getGeneratorConfig()->getConfigPropertyString($name, $isRequired);
     }
 
     /**
@@ -325,7 +335,7 @@ abstract class DataModelBuilder
      */
     public function prefixClassName(string $identifier): string
     {
-        return $this->getBuildProperty('generator.objectModel.classPrefix') . $identifier;
+        return $this->getBuildPropertyString('generator.objectModel.classPrefix', true) . $identifier;
     }
 
     /**
@@ -707,6 +717,6 @@ abstract class DataModelBuilder
             return $column->getPhpType();
         }
 
-        return $this->getBuildProperty('generator.dateTime.dateTimeClass') ?: '\DateTime';
+        return $this->getBuildPropertyString('generator.dateTime.dateTimeClass') ?: '\DateTime';
     }
 }

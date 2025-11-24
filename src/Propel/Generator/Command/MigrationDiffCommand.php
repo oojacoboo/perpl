@@ -98,8 +98,8 @@ class MigrationDiffCommand extends AbstractCommand
         }
 
         $manager->setConnections($connections);
-        $manager->setMigrationTable($generatorConfig->getConfigProperty('migrations.tableName'));
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['migrationDir']);
+        $manager->setMigrationTable($generatorConfig->getConfigPropertyString('migrations.tableName', true));
+        $manager->setWorkingDirectory($generatorConfig->getConfigPropertyString('paths.migrationDir', true));
 
         if ($manager->hasPendingMigrations()) {
             throw new RuntimeException(sprintf(

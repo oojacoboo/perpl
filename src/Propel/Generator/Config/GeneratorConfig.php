@@ -9,6 +9,7 @@
 namespace Propel\Generator\Config;
 
 use Propel\Common\Config\ConfigurationManager;
+use Propel\Common\Config\Exception\InvalidConfigurationException;
 use Propel\Common\Pluralizer\PluralizerInterface;
 use Propel\Generator\Builder\Om\AbstractOMBuilder;
 use Propel\Generator\Exception\BuildException;
@@ -95,7 +96,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     #[\Override]
     public function getConfiguredPlatform(?ConnectionInterface $con = null, ?string $database = null): ?PlatformInterface
     {
-        $platform = $this->getConfigProperty('generator.platformClass');
+        $platform = $this->getConfigPropertyString('generator.platformClass');
 
         if ($platform === null) {
             if ($database) {
@@ -140,32 +141,34 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
      * @inheritDoc
      *
      * @throws \Propel\Generator\Exception\ClassNotFoundException
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
      */
     #[\Override]
     public function getConfiguredSchemaParser(?ConnectionInterface $con = null, $database = null): ?SchemaParserInterface
     {
-        $reverse = $this->getConfigProperty('migrations.parserClass');
+        $reverseParserClass = $this->getConfigPropertyString('migrations.parserClass');
 
-        if ($reverse === null) {
+        if ($reverseParserClass === null) {
             if ($database) {
-                $reverse = $this->getBuildConnection($database)['adapter'];
+                $reverseParserClass = $this->getBuildConnection($database)['adapter'];
             } else {
                 $connections = $this->getBuildConnections();
-                $connection = $this->getConfigProperty('generator.defaultConnection');
-
-                if (isset($connections[$connection])) {
-                    $reverse = '\\Propel\\Generator\\Reverse\\' . ucfirst($connections[$connection]['adapter']) . 'SchemaParser';
-                } else {
-                    $reverse = '\\Propel\\Generator\\Reverse\\MysqlSchemaParser';
+                $defaultConnection = $this->getConfigProperty('generator.defaultConnection', true);
+                if (!is_string($defaultConnection) && !is_int($defaultConnection)) {
+                    throw new InvalidConfigurationException('Configuration key `generator.defaultConnection` must be string or int.');
                 }
+                $adapterName = isset($connections[$defaultConnection])
+                    ? ucfirst($connections[$defaultConnection]['adapter'])
+                    : 'Mysql';
+                $reverseParserClass = "\\Propel\\Generator\\Reverse\\{$adapterName}SchemaParser";
             }
         }
 
         $classes = [
-            $reverse,
-            '\\Propel\\Generator\\Reverse\\' . $reverse,
-            '\\Propel\\Generator\\Reverse\\' . ucfirst($reverse),
-            '\\Propel\\Generator\\Reverse\\' . ucfirst(strtolower($reverse)) . 'SchemaParser',
+            $reverseParserClass,
+            '\\Propel\\Generator\\Reverse\\' . $reverseParserClass,
+            '\\Propel\\Generator\\Reverse\\' . ucfirst($reverseParserClass),
+            '\\Propel\\Generator\\Reverse\\' . ucfirst(strtolower($reverseParserClass)) . 'SchemaParser',
         ];
 
         $reverseClass = null;
@@ -179,13 +182,13 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
         }
 
         if ($reverseClass === null) {
-            throw new ClassNotFoundException(sprintf('Reverse SchemaParser class for `%s` not found.', $reverse));
+            throw new ClassNotFoundException(sprintf('Reverse SchemaParser class for `%s` not found.', $reverseParserClass));
         }
 
         /** @var \Propel\Generator\Reverse\AbstractSchemaParser $parser */
         $parser = $this->getInstance($reverseClass, null, '\\Propel\\Generator\\Reverse\\SchemaParserInterface');
         $parser->setConnection($con);
-        $parser->setMigrationTable($this->getConfigProperty('migrations.tableName'));
+        $parser->setMigrationTable($this->getConfigPropertyString('migrations.tableName', true));
         $parser->setGeneratorConfig($this);
 
         return $parser;
@@ -206,7 +209,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     public function getConfiguredBuilder(Table $table, string $type): AbstractOMBuilder
     {
         $configProperty = 'generator.objectModel.builders.' . $type;
-        $classname = $this->getConfigProperty($configProperty);
+        $classname = $this->getConfigPropertyString($configProperty);
         if ($classname === null) {
             throw new InvalidArgumentException(sprintf('Unable to get config property: "%s"', $configProperty));
         }
@@ -226,7 +229,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     #[\Override]
     public function getConfiguredPluralizer(): PluralizerInterface
     {
-        $classname = $this->getConfigProperty('generator.objectModel.pluralizerClass');
+        $classname = $this->getConfigPropertyString('generator.objectModel.pluralizerClass', true);
 
         /** @var \Propel\Common\Pluralizer\PluralizerInterface $pluralizer */
         $pluralizer = $this->getInstance($classname, null, static::PLURALIZER);
@@ -238,6 +241,8 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
      * Return an array of all configured connection properties, from `generator` and `reverse`
      * sections of the configuration.
      *
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     *
      * @return array<array<string, string>>
      */
     public function getBuildConnections(): array
@@ -247,7 +252,10 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
         }
 
         $this->buildConnections = [];
-        $connectionNames = $this->getConfigProperty('generator.connections');
+        $connectionNames = $this->getConfigProperty('generator.connections', true);
+        if (!is_array($connectionNames)) {
+            throw new InvalidConfigurationException('Configuration item `generator.connections` is expected to be an array, but is ' . var_export($connectionNames, true));
+        }
         $reverseConnection = $this->getConfigProperty('reverse.connection');
 
         if ($reverseConnection !== null && !in_array($reverseConnection, $connectionNames, true)) {
@@ -256,7 +264,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
 
         foreach ($connectionNames as $name) {
             /** @var array<string, string>|null $definition */
-            $definition = $this->getConfigProperty('database.connections.' . $name);
+            $definition = $this->getConfigProperty("database.connections.$name", true);
 
             if ($definition) {
                 $this->buildConnections[$name] = $definition;
@@ -279,7 +287,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     public function getBuildConnection(?string $databaseName = null): array
     {
         if ($databaseName === null) {
-            $databaseName = $this->getConfigProperty('generator.defaultConnection');
+            $databaseName = $this->getConfigPropertyString('generator.defaultConnection', true);
         }
 
         if (!array_key_exists($databaseName, $this->getBuildConnections())) {

@@ -421,7 +421,7 @@ class GeneratorConfigTest extends TestCase
      */
     public function testGetConfigPropertyThrowsException(): void
     {
-        $this->expectException(\Propel\Common\Config\Exception\InvalidArgumentException::class);
+        $this->expectException(\Propel\Common\Config\Exception\InvalidConfigurationException::class);
         $this->generatorConfig->getConfigProperty('foo.bar', true);
     }
 }

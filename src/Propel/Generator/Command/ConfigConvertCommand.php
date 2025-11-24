@@ -65,7 +65,9 @@ class ConfigConvertCommand extends AbstractCommand
             throw new RuntimeException(sprintf('Unable to write the "%s" output file', $outputFilePath));
         }
 
-        $loaderDir = $input->getOption('loader-script-dir') ?? $configManager->getConfigProperty('paths.loaderScriptDir') ?? $configManager->getConfigProperty('paths.phpConfDir');
+        $loaderDir = $input->getOption('loader-script-dir')
+            ?? $configManager->getConfigPropertyString('paths.loaderScriptDir')
+            ?? $configManager->getConfigPropertyString('paths.phpConfDir');
         $fileName = $this->createLoadDatabaseDummyScript($loaderDir, $output);
         $relativeLoaderScriptLocation = DIRECTORY_SEPARATOR . $this->getRelativePathToLoaderScript($loaderDir, $outputDir) . $fileName;
 

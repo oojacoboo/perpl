@@ -9,6 +9,7 @@
 namespace Propel\Generator\Platform;
 
 use PDO;
+use Propel\Common\Config\Exception\InvalidConfigurationException;
 use Propel\Generator\Config\GeneratorConfigInterface;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Column;
@@ -80,6 +81,8 @@ class MysqlPlatform extends DefaultPlatform
     /**
      * @param \Propel\Generator\Config\GeneratorConfigInterface $generatorConfig
      *
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     *
      * @return void
      */
     #[\Override]
@@ -87,7 +90,11 @@ class MysqlPlatform extends DefaultPlatform
     {
         parent::setGeneratorConfig($generatorConfig);
 
-        $mysqlConfig = $generatorConfig->get()['database']['adapters']['mysql'];
+        $configProp = 'database.adapters.mysql';
+        $mysqlConfig = $generatorConfig->getConfigProperty($configProp, true);
+        if (!is_array($mysqlConfig)) {
+            throw new InvalidConfigurationException("Config property `$configProp` is supposed to be an array, but is " . var_export($mysqlConfig, true));
+        }
 
         $defaultTableEngine = $mysqlConfig['tableType'];
         if ($defaultTableEngine) {

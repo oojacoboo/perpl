@@ -78,7 +78,7 @@ class QuickGeneratorConfig extends ConfigurationManager implements GeneratorConf
     #[\Override]
     public function getConfiguredBuilder(Table $table, string $type): AbstractOMBuilder
     {
-        $class = $this->getConfigProperty('generator.objectModel.builders.' . $type);
+        $class = $this->getConfigPropertyString('generator.objectModel.builders.' . $type);
 
         if ($class === null) {
             throw new InvalidArgumentException("Invalid data model builder type `$type`");
