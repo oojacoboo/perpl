@@ -95,7 +95,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     #[\Override]
     public function getConfiguredPlatform(?ConnectionInterface $con = null, ?string $database = null): ?PlatformInterface
     {
-        $platform = $this->get()['generator']['platformClass'];
+        $platform = $this->getConfigProperty('generator.platformClass');
 
         if ($platform === null) {
             if ($database) {
@@ -144,14 +144,14 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     #[\Override]
     public function getConfiguredSchemaParser(?ConnectionInterface $con = null, $database = null): ?SchemaParserInterface
     {
-        $reverse = $this->get()['migrations']['parserClass'];
+        $reverse = $this->getConfigProperty('migrations.parserClass');
 
         if ($reverse === null) {
             if ($database) {
                 $reverse = $this->getBuildConnection($database)['adapter'];
             } else {
                 $connections = $this->getBuildConnections();
-                $connection = $this->get()['generator']['defaultConnection'];
+                $connection = $this->getConfigProperty('generator.defaultConnection');
 
                 if (isset($connections[$connection])) {
                     $reverse = '\\Propel\\Generator\\Reverse\\' . ucfirst($connections[$connection]['adapter']) . 'SchemaParser';
@@ -185,7 +185,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
         /** @var \Propel\Generator\Reverse\AbstractSchemaParser $parser */
         $parser = $this->getInstance($reverseClass, null, '\\Propel\\Generator\\Reverse\\SchemaParserInterface');
         $parser->setConnection($con);
-        $parser->setMigrationTable($this->get()['migrations']['tableName']);
+        $parser->setMigrationTable($this->getConfigProperty('migrations.tableName'));
         $parser->setGeneratorConfig($this);
 
         return $parser;
@@ -226,7 +226,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     #[\Override]
     public function getConfiguredPluralizer(): PluralizerInterface
     {
-        $classname = $this->get()['generator']['objectModel']['pluralizerClass'];
+        $classname = $this->getConfigProperty('generator.objectModel.pluralizerClass');
 
         /** @var \Propel\Common\Pluralizer\PluralizerInterface $pluralizer */
         $pluralizer = $this->getInstance($classname, null, static::PLURALIZER);
@@ -247,7 +247,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
         }
 
         $this->buildConnections = [];
-        $connectionNames = $this->get()['generator']['connections'];
+        $connectionNames = $this->getConfigProperty('generator.connections');
         $reverseConnection = $this->getConfigProperty('reverse.connection');
 
         if ($reverseConnection !== null && !in_array($reverseConnection, $connectionNames, true)) {
@@ -279,7 +279,7 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
     public function getBuildConnection(?string $databaseName = null): array
     {
         if ($databaseName === null) {
-            $databaseName = $this->get()['generator']['defaultConnection'];
+            $databaseName = $this->getConfigProperty('generator.defaultConnection');
         }
 
         if (!array_key_exists($databaseName, $this->getBuildConnections())) {

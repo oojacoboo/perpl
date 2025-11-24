@@ -72,11 +72,23 @@ class ConfigurationManager
     }
 
     /**
+     * @deprecated Use aptly named {@see ConfigurationManager::getConfig()}
+     *
      * Return the whole configuration array
      *
      * @return array
      */
     public function get(): array
+    {
+        return $this->config;
+    }
+
+    /**
+     * Return the whole configuration array
+     *
+     * @return array
+     */
+    public function getConfig(): array
     {
         return $this->config;
     }
@@ -119,7 +131,7 @@ class ConfigurationManager
         }
 
         $keys = explode('.', $name);
-        $output = $this->get();
+        $section = $this->getConfig();
         foreach ($keys as $key) {
             if (!array_key_exists($key, $output)) {
                 return null;
