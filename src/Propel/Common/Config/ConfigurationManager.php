@@ -118,28 +118,36 @@ class ConfigurationManager
      * is expressed by:
      * <code>'database.adapter.mysql.tableType</code>
      *
-     * @param string $name The name of property, expressed as a dot separated level hierarchy
+     * @param string $path The name of property, expressed as a dot separated level hierarchy
+     * @param bool $isRequired
      *
      * @throws \Propel\Common\Config\Exception\InvalidArgumentException
      *
-     * @return mixed The configuration property
+     * @return array|scalar|null The configuration property
      */
-    public function getConfigProperty(string $name)
+    public function getConfigProperty(string $path, bool $isRequired = false): mixed
     {
-        if ($name === '') {
+        if ($path === '') {
             throw new InvalidArgumentException('Invalid empty configuration property name.');
         }
 
-        $keys = explode('.', $name);
+        $keys = explode('.', $path);
         $section = $this->getConfig();
         foreach ($keys as $key) {
-            if (!array_key_exists($key, $output)) {
-                return null;
+            if (array_key_exists($key, $section)) {
+                $section = $section[$key];
+
+                continue;
             }
-            $output = $output[$key];
+
+            if ($isRequired) {
+                throw new InvalidArgumentException("Cannot resolve config property '$path': No value at '$key'");
+            }
+
+            return null;
         }
 
-        return $output;
+        return $section;
     }
 
     /**

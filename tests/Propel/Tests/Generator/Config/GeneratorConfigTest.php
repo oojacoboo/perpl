@@ -12,7 +12,6 @@ use Propel\Generator\Config\GeneratorConfig;
 use Propel\Generator\Exception\BuildException;
 use Propel\Generator\Exception\ClassNotFoundException;
 use Propel\Generator\Exception\InvalidArgumentException;
-use Propel\Tests\Common\Config\ConfigTestCase;
 use Propel\Tests\TestCase;
 use Propel\Generator\Util\VfsTrait;
 use ReflectionClass;
@@ -415,5 +414,14 @@ class GeneratorConfigTest extends TestCase
         $actual = $this->generatorConfig->getBehaviorLocator();
 
         $this->assertInstanceOf('\\Propel\\Generator\\Util\\BehaviorLocator', $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetConfigPropertyThrowsException(): void
+    {
+        $this->expectException(\Propel\Common\Config\Exception\InvalidArgumentException::class);
+        $this->generatorConfig->getConfigProperty('foo.bar', true);
     }
 }

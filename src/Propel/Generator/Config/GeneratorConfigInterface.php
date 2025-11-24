@@ -77,13 +77,14 @@ interface GeneratorConfigInterface
      * is expressed by:
      * <code>'database.adapter.mysql.tableType</code>
      *
-     * @param string $name The name of property, expressed as a dot separated level hierarchy
+     * @param string $path The name of property, expressed as a dot separated level hierarchy
+     * @param bool $isRequired
      *
      * @throws \Propel\Common\Config\Exception\InvalidArgumentException
      *
-     * @return mixed The configuration property
+     * @return array|scalar|null The configuration property
      */
-    public function getConfigProperty(string $name);
+    public function getConfigProperty(string $path, bool $isRequired = false): mixed;
 
     /**
      * Return the whole configuration array
