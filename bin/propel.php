@@ -23,7 +23,7 @@ use Symfony\Component\Finder\Finder;
 $finder = new Finder();
 $finder->files()->name('*.php')->in(__DIR__ . '/../src/Propel/Generator/Command')->depth(0);
 
-$app = new Application('Propel', Propel::VERSION);
+$app = new Application('Perpl', Propel::VERSION);
 
 $ns = '\\Propel\\Generator\\Command\\';
 
