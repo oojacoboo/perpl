@@ -399,8 +399,8 @@ EOF;
         $this->assertArrayHasKey('runtime', $manager->getConfig());
         $this->assertArrayHasKey('generator', $manager->getConfig());
 
-        $this->assertArrayHasKey('connections', $manager->getSection('runtime'));
-        $this->assertArrayHasKey('connections', $manager->getSection('generator'));
+        $this->assertArrayHasKey('connections', $manager->getConfigProperty('runtime'));
+        $this->assertArrayHasKey('connections', $manager->getConfigProperty('generator'));
 
         $this->assertEquals(['default'], $manager->getConfigProperty('runtime.connections'));
         $this->assertEquals(['default'], $manager->getConfigProperty('generator.connections'));
@@ -522,7 +522,7 @@ EOF;
         $this->newFile('propel.yaml', $yamlConf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
-        $actual = $manager->getSection('runtime');
+        $actual = $manager->getConfigProperty('runtime');
 
         $this->assertEquals($actual['defaultConnection'], 'mysource');
         $this->assertEquals($actual['connections'], ['mysource', 'yoursource']);
@@ -735,7 +735,7 @@ EOF;
         ];
 
         $manager = new NotLoadingConfigurationManager(null, $configs);
-        $actual = $manager->GetSection('database')['connections'];
+        $actual = $manager->getConfigProperty('database.connections');
 
         $this->assertEquals($configs['propel']['database']['connections'], $actual);
     }
@@ -854,10 +854,10 @@ EOF;
         $this->newFile('propel.yaml', $yamlConf);
         $manager = new ConfigurationManager($this->getRoot()->url());
 
-        $this->assertEquals('mysource', $manager->getSection('generator')['defaultConnection']);
-        $this->assertEquals('mysource', $manager->getSection('runtime')['defaultConnection']);
-        $this->assertEquals(['mysource', 'yoursource'], $manager->getSection('generator')['connections']);
-        $this->assertEquals(['mysource', 'yoursource'], $manager->getSection('runtime')['connections']);
+        $this->assertEquals('mysource', $manager->getConfigProperty('generator.defaultConnection'));
+        $this->assertEquals('mysource', $manager->getConfigProperty('runtime.defaultConnection'));
+        $this->assertEquals(['mysource', 'yoursource'], $manager->getConfigProperty('generator.connections'));
+        $this->assertEquals(['mysource', 'yoursource'], $manager->getConfigProperty('runtime.connections'));
     }
 }
 

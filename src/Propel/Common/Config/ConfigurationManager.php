@@ -94,6 +94,8 @@ class ConfigurationManager
     }
 
     /**
+     * @deprecated Access config props (including full sections) through {@see static::getConfigProperty()}
+     *
      * Return a specific section of the configuration array.
      * It ca be useful to get, in example, only 'generator' values.
      *

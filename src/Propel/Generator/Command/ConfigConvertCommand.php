@@ -99,8 +99,8 @@ class ConfigConvertCommand extends AbstractCommand
     {
         $options = [];
         $options['connections'] = $configManager->getConnectionParametersArray();
-        $options['defaultConnection'] = $configManager->getSection('runtime')['defaultConnection'];
-        $options['log'] = $configManager->getSection('runtime')['log'];
+        $options['defaultConnection'] = $configManager->getConfigPropertyString('runtime.defaultConnection', true);
+        $options['log'] = $configManager->getConfigProperty('runtime.log');
         $options['profiler'] = $configManager->getConfigProperty('runtime.profiler');
 
         $stringifiedOptions = ArrayToPhpConverter::convert($options);

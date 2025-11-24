@@ -49,13 +49,13 @@ class GraphvizGenerateCommand extends AbstractCommand
         if ($this->hasInputOption('schema-dir', $input)) {
             $configOptions['propel']['paths']['schemaDir'] = $input->getOption('schema-dir');
         }
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
 
         $this->createDirectory($input->getOption('output-dir'));
 
         $manager = new GraphvizManager();
         $manager->setGeneratorConfig($generatorConfig);
-        $manager->setSchemas($this->getSchemas($generatorConfig->getSection('paths')['schemaDir'], $generatorConfig->getSection('generator')['recursive']));
+        $manager->setSchemas($this->getSchemasFromConfig($generatorConfig));
         $manager->setLoggerClosure(function ($message) use ($input, $output): void {
             if ($input->getOption('verbose')) {
                 $output->writeln($message);

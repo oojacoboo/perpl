@@ -68,7 +68,7 @@ class DataDictionaryExportCommand extends AbstractCommand
         if ($this->hasInputOption(static::OPTION_SCHEMA_DIR, $input)) {
             $configOptions['propel']['paths']['schemaDir'] = $input->getOption(static::OPTION_SCHEMA_DIR);
         }
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
         $manager = new DataDictionaryExportManager();
         $manager->setGeneratorConfig($generatorConfig);
 

@@ -135,7 +135,7 @@ class ModelBuildCommand extends AbstractCommand
             }
         }
 
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
         $this->createDirectory($generatorConfig->getConfigPropertyString('paths.phpDir', true));
 
         $manager = new ModelManager();
@@ -150,7 +150,7 @@ class ModelBuildCommand extends AbstractCommand
                 $output->writeln($message);
             }
         });
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['phpDir']);
+        $manager->setWorkingDirectory($generatorConfig->getConfigPropertyString('paths.phpDir', true));
 
         $manager->build();
 

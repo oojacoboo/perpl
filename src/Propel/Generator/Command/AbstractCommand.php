@@ -66,7 +66,7 @@ abstract class AbstractCommand extends Command
      *
      * @return \Propel\Generator\Config\GeneratorConfig
      */
-    protected function getGeneratorConfig(?array $properties = null, ?InputInterface $input = null): GeneratorConfig
+    protected function buildGeneratorConfig(?array $properties = null, ?InputInterface $input = null): GeneratorConfig
     {
         if ($input === null) {
             return new GeneratorConfig(null, $properties);
