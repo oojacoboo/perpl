@@ -23,7 +23,10 @@ class Application extends SymfonyApplication
     #[\Override]
     public function doRun(InputInterface $input, OutputInterface $output): int
     {
-        if (extension_loaded('xdebug')) {
+        $command = $input->getFirstArgument();
+        $xdebugNoWarn = in_array($command, ['completion', '_complete']);
+
+        if (!$xdebugNoWarn && extension_loaded('xdebug')) {
             $output->writeln(
                 '<comment>You are running perpl with xdebug enabled. This has a major impact on runtime performance.</comment>' . "\n",
             );
