@@ -14,6 +14,7 @@ use Propel\Generator\Util\SqlParser;
 use Propel\Runtime\Adapter\AdapterFactory;
 use Propel\Runtime\Connection\ConnectionFactory;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Propel\Runtime\Connection\Exception\ConnectionException;
 use RuntimeException;
 
 /**
@@ -216,6 +217,8 @@ class SqlManager extends AbstractManager
      *
      * @param string $datasource
      *
+     * @throws \Propel\Runtime\Connection\Exception\ConnectionException
+     *
      * @return \Propel\Runtime\Connection\ConnectionInterface
      */
     protected function getConnectionInstance(string $datasource): ConnectionInterface
@@ -228,8 +231,10 @@ class SqlManager extends AbstractManager
         $username = isset($buildConnection['user']) && $buildConnection['user'] ? $buildConnection['user'] : null;
         $password = isset($buildConnection['password']) && $buildConnection['password'] ? $buildConnection['password'] : null;
 
-        $con = ConnectionFactory::create(['dsn' => $dsn, 'user' => $username, 'password' => $password], AdapterFactory::create($buildConnection['adapter']));
-
-        return $con;
+        try {
+            return ConnectionFactory::create(['dsn' => $dsn, 'user' => $username, 'password' => $password], AdapterFactory::create($buildConnection['adapter']));
+        } catch (ConnectionException $e) {
+            throw new ConnectionException("Could not open connection `$datasource`, check dsn, username and password.");
+        }
     }
 }

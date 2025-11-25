@@ -290,11 +290,15 @@ class GeneratorConfig extends ConfigurationManager implements GeneratorConfigInt
             $databaseName = $this->getConfigPropertyString('generator.defaultConnection', true);
         }
 
-        if (!array_key_exists($databaseName, $this->getBuildConnections())) {
-            throw new InvalidArgumentException("Invalid database name: no configured connection named `$databaseName`.");
+        $connections = $this->getBuildConnections();
+        if (array_key_exists($databaseName, $connections)) {
+            return $connections[$databaseName];
         }
+        $availableConnections = array_keys($connections);
+        $message = "Database connection `$databaseName` is not a registered connection.\n\n"
+        . 'Update configuration or choose one of [`' . implode('`, `', $availableConnections) . '`]';
 
-        return $this->getBuildConnections()[$databaseName];
+        throw new InvalidArgumentException($message);
     }
 
     /**

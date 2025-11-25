@@ -73,7 +73,6 @@ abstract class AbstractMigrationCommand extends AbstractCommand
     {
         $manager = new MigrationManager();
         $manager->setGeneratorConfig($generatorConfig);
-        $manager->setSchemas($this->getSchemasFromConfig($generatorConfig));
 
         return $manager;
     }

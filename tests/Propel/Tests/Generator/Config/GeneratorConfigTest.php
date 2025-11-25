@@ -125,7 +125,9 @@ class GeneratorConfigTest extends TestCase
     public function testGetConfiguredPlatformGivenBadDatabaseNameThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid database name: no configured connection named `badsource`.');
+        $this->expectExceptionMessage('Database connection `badsource` is not a registered connection.
+
+Update configuration or choose one of [`mysource`, `yoursource`]');
 
         $this->generatorConfig->getConfiguredPlatform(null, 'badsource');
     }
@@ -370,7 +372,9 @@ class GeneratorConfigTest extends TestCase
     public function testGetBuildConnectionGivenWrongDatabaseThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid database name: no configured connection named `wrongsource`.');
+        $this->expectExceptionMessage('Database connection `wrongsource` is not a registered connection.
+
+Update configuration or choose one of [`mysource`, `yoursource`]');
 
         $actual = $this->generatorConfig->getBuildConnection('wrongsource');
     }
@@ -401,7 +405,9 @@ class GeneratorConfigTest extends TestCase
     public function testGetConnectionWrongDatabaseThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid database name: no configured connection named `badsource`.');
+        $this->expectExceptionMessage('Database connection `badsource` is not a registered connection.
+
+Update configuration or choose one of [`mysource`, `yoursource`]');
 
         $actual = $this->generatorConfig->getConnection('badsource');
     }
