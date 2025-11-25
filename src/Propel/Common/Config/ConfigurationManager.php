@@ -26,11 +26,6 @@ use Symfony\Component\Finder\Finder;
 class ConfigurationManager
 {
     /**
-     * @var string
-     */
-    public const CONFIG_FILE_NAME = 'propel';
-
-    /**
      * @var int
      */
     private const PRECEDENCE_DIST = 0;
@@ -278,7 +273,7 @@ class ConfigurationManager
         try {
             $this->config = $processor->processConfiguration($configuration, $this->config);
         } catch (SymfonyInvalidConfigurationException $e) {
-            throw new InvalidConfigurationException('Configuration Error: ' . $e->getMessage());
+            throw new InvalidConfigurationException('Invalid configuration: ' . $e->getMessage());
         }
         $this->cleanupSlaveConnections();
         $this->cleanupConnections();
@@ -302,11 +297,16 @@ class ConfigurationManager
         ];
         $dirs = array_filter($dirs, 'is_dir');
 
-        $fileGlob = self::CONFIG_FILE_NAME . '.{php,inc,ini,properties,yaml,yml,xml,json}{,.dist}';
+        $fileGlob = 'p{rope,erp}l.{php,inc,ini,properties,yaml,yml,xml,json}{,.dist}';
         $finder = new Finder();
         $finder->in($dirs)->depth(0)->files()->name($fileGlob);
         $orderedConfigFileNames = [];
         foreach ($finder as $file) {
+            $realPath = $file->getRealPath();
+            $isExecutable = array_any(['propel', 'perpl'], fn ($cmd) => str_ends_with($realPath, "/bin/{$cmd}.php"));
+            if ($isExecutable) {
+                continue;
+            }
             $precedence = ($file->getExtension() === 'dist') ? self::PRECEDENCE_DIST : self::PRECEDENCE_NORMAL;
             if (isset($orderedConfigFileNames[$precedence])) {
                 $messageSplits = [
