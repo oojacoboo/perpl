@@ -8,6 +8,7 @@
 
 namespace Propel\Generator\Command;
 
+use Propel\Common\Config\ConfigurationManager;
 use Propel\Common\Config\Exception\InvalidConfigurationException;
 use Propel\Generator\Config\GeneratorConfig;
 use RuntimeException;
@@ -64,24 +65,30 @@ abstract class AbstractCommand extends Command
      *
      * @param array|null $properties Properties to add to the configuration. They usually come from command line.
      * @param \Symfony\Component\Console\Input\InputInterface|null $input
+     * @param array<string, string> $inputOptionToPath
      *
      * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
      *
      * @return \Propel\Generator\Config\GeneratorConfig
      */
-    protected function buildGeneratorConfig(?array $properties = null, ?InputInterface $input = null): GeneratorConfig
+    protected function buildGeneratorConfig(?array $properties = null, ?InputInterface $input = null, array $inputOptionToPath = []): GeneratorConfig
     {
         if ($input === null) {
             return new GeneratorConfig(null, $properties);
         }
 
         if ($this->hasInputOption('platform', $input)) {
-            $properties['propel']['generator']['platformClass'] = $input->getOption('platform');
+            $inputOptionToPath['platform'] ??= 'generator.platformClass';
         }
 
         if ($input->hasParameterOption('--recursive')) {
-            $properties['propel']['generator']['recursive'] = $input->getOption('recursive');
+            $inputOptionToPath['recursive'] ??= 'generator.platformClass';
         }
+
+        $availableOptions = array_filter($inputOptionToPath, fn ($param) => $input->hasParameterOption(str_starts_with('--', $param) ? $param : "--$param"), ARRAY_FILTER_USE_KEY);
+        $optionValues = array_map([$input, 'getOption'], array_flip($availableOptions));
+        $moreProperties = ['propel' => ConfigurationManager::deflateConfigurationArray($optionValues)];
+        $properties = array_merge_recursive($properties ?? [], $moreProperties);
 
         $configDir = $input->getOption('config-dir');
         try {
@@ -91,6 +98,29 @@ abstract class AbstractCommand extends Command
 
             throw new InvalidConfigurationException($userMessage);
         }
+    }
+
+    /**
+     * @phpstan-return array<string, non-empty-array<string, string>>|null
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     *
+     * @return array<string, array{string, string}>|null
+     */
+    protected function buildConnectionFromInput(InputInterface $input): array|null
+    {
+        $requestedConnection = $input->getOption('connection');
+        if (!$requestedConnection) {
+            return null;
+        }
+
+        $connections = [];
+        foreach ($requestedConnection as $connection) {
+            [$name, $dsn, $infos] = $this->parseConnection($connection);
+            $connections[$name] = ['dsn' => $dsn, ...$infos];
+        }
+
+        return $connections;
     }
 
     /**
@@ -127,7 +157,7 @@ Hint:
      *
      * @return array<\Symfony\Component\Finder\SplFileInfo> List of schema files
      */
-    protected function getSchemas($directory, bool $recursive = false): array
+    protected function findSchemasInDirectory(array|string $directory, bool $recursive = false): array
     {
         $finder = new Finder();
         $finder
@@ -157,7 +187,7 @@ Hint:
             throw new MissingInputException('Path to schema directory is missing. Use the --schema-dir option or the propel.paths.schemaDir configuration property to set it.');
         }
         $recursive = (bool)$generatorConfig->getConfigProperty('generator.recursive');
-        $schemas = $this->getSchemas($schemaDir, $recursive);
+        $schemas = $this->findSchemasInDirectory($schemaDir, $recursive);
         if ($schemas || !$required) {
             return $schemas;
         }
@@ -210,7 +240,7 @@ Hint:
      *
      * @param string $connection The connection string
      *
-     * @return array
+     * @return array{string, string, array<string,string>}
      */
     protected function parseConnection(string $connection): array
     {

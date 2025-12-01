@@ -94,18 +94,15 @@ class TestPrepareCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $result = static::CODE_SUCCESS;
+        $exitCode = static::CODE_SUCCESS;
         foreach ($this->fixtures as $fixturesDir => $connections) {
             $this->resetCounters();
-
-            $run = $this->buildFixtures(sprintf('%s/%s', self::FIXTURES_DIR, $fixturesDir), $connections, $input, $output);
-            if ($run !== static::CODE_SUCCESS) {
-                $result = $run;
-            }
+            $buildDir = self::FIXTURES_DIR . DIRECTORY_SEPARATOR . $fixturesDir;
+            $exitCode |= $this->buildFixtures($buildDir, $connections, $input, $output);
         }
         chdir($this->root);
 
-        return $result;
+        return $exitCode;
     }
 
     /**
@@ -142,7 +139,7 @@ class TestPrepareCommand extends AbstractCommand
         $mainConnection = $connections[0];
         $this->runConfigConvertCommand($output, $mainConnection);
 
-        $hasSchemasInCurrentDir = count($this->getSchemas('.')) > 0;
+        $hasSchemasInCurrentDir = count($this->findSchemasInDirectory('.')) > 0;
         if (!$hasSchemasInCurrentDir) {
             return static::CODE_SUCCESS;
         }

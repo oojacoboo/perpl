@@ -132,7 +132,7 @@ class TestableAbstractCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $result = $this->getSchemas($input->getOption('config-dir'), $input->getOption('recursive'));
+        $result = $this->findSchemasInDirectory($input->getOption('config-dir'), $input->getOption('recursive'));
 
         $output->write(count($result));
 

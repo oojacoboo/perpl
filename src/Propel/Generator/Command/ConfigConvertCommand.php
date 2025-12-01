@@ -75,15 +75,15 @@ class ConfigConvertCommand extends AbstractCommand
 
         if (file_exists($outputFilePath)) {
             $currentContent = file_get_contents($outputFilePath);
-            if ($currentContent == $phpConf) {
-                $output->writeln(sprintf('No change required in the current configuration file <info>"%s"</info>.', $outputFilePath));
+            if ($currentContent === $phpConf) {
+                $output->writeln("No change required in current configuration file <info>$outputFilePath</info>.");
             } else {
                 file_put_contents($outputFilePath, $phpConf);
-                $output->writeln(sprintf('Successfully updated PHP configuration in file <info>"%s"</info>.', $outputFilePath));
+                $output->writeln("Successfully updated PHP configuration in file <info>$outputFilePath</info>.");
             }
         } else {
             file_put_contents($outputFilePath, $phpConf);
-            $output->writeln(sprintf('Successfully wrote PHP configuration in file <info>"%s"</info>.', $outputFilePath));
+            $output->writeln("Successfully wrote PHP configuration in file <info>$outputFilePath</info>.");
         }
 
         return static::CODE_SUCCESS;
