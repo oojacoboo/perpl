@@ -42,7 +42,7 @@ class PrintPropelDirectoriesCommand extends AbstractCommand
 
         $manager = new PrintPropelDirectoriesManager();
         $manager->setGeneratorConfig($config);
-        $schemas = $this->getSchemasFromConfig($config);
+        $schemas = $this->getSchemasFromConfig($config, false);
         $manager->setSchemas($schemas);
         $manager->setLoggerClosure(fn ($data) => $output->write($data));
         $manager->build();

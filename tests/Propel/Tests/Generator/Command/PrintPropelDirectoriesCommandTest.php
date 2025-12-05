@@ -20,12 +20,44 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
     /**
      * @return void
      */
-    public function testPrintNamespacedFixtures(): void
+    protected function setUp(): void
     {
+        parent::setUp();
         if (!class_exists('\Symfony\Component\Filesystem\Path')) {
             $this->markTestSkipped("('\Symfony\Component\Console\Path not available");
         }
+    }
 
+    /**
+     * @return void
+     */
+    public function testPrintNoSchema(): void
+    {
+        $firstLine = extension_loaded('xdebug') ? "You are running perpl with xdebug enabled. This has a major impact on runtime performance.\n\n" : '';
+        $rootDir = realpath(__DIR__ . '/../../../../../');
+
+        $this->assertCommandOutput(
+            [
+                '--config-dir' => "$rootDir/tests/Fixtures/namespaced",
+            ],
+            "{$firstLine}Directory structure and files according to current config (directories marked as relative change when perpl is called from a different path):
+
+└── $rootDir/
+     │  paths.schemaDir Schema XML files (input for migration:diff, database:reverse, etc) !from relative path!
+     ├── generated-classes/
+     │       paths.phpDir Base target directory for model:build !from relative path!
+     ├── generated-conf/
+     │       paths.phpConfDir Perpl configurations files (from config:convert and model:build). !from relative path!
+     └── generated-sql/
+             paths.sqlDir SQL database initialization files for sql:insert (user-generated and generated from schema.xml by sql:build) !from relative path!
+");
+    }
+
+    /**
+     * @return void
+     */
+    public function testPrintNamespacedFixtures(): void
+    {
         $firstLine = extension_loaded('xdebug') ? "You are running perpl with xdebug enabled. This has a major impact on runtime performance.\n\n" : '';
         $rootDir = realpath(__DIR__ . '/../../../../../');
 
@@ -110,7 +142,7 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
     {
         $app = new Application('Propel', Propel::VERSION);
         $command = new PrintPropelDirectoriesCommand();
-        $app->add($command);
+        $app->addCommands([$command]);
 
         $input = new ArrayInput(['command' => 'config:preview', ...$input]);
         $output = new StreamOutput(fopen('php://temp', 'r+'));

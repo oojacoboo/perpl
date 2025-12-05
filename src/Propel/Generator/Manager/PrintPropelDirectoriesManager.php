@@ -193,6 +193,9 @@ class PrintPropelDirectoriesManager extends AbstractManager
      */
     protected function loadGeneratedFilePaths(): void
     {
+        if (!$this->getSchemas()) {
+            return;
+        }
         $filePaths = $this->getFilePathsFromManager();
         foreach ($filePaths as $filePath) {
             $this->insertDirectory($filePath['path'], $filePath['status']);
