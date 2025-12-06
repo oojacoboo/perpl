@@ -194,6 +194,8 @@ class PrintPropelDirectoriesManager extends AbstractManager
     protected function loadGeneratedFilePaths(): void
     {
         if (!$this->getSchemas()) {
+            $this->log("<error>No schema.xml file provided, skipping model class output (check --schema-dir argument or paths.schemaDir in config).</error>\n\n");
+
             return;
         }
         $filePaths = $this->getFilePathsFromManager();

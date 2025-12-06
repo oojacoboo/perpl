@@ -36,6 +36,12 @@ class PrintPropelDirectoriesCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!class_exists('\Symfony\Component\Filesystem\Path')) {
+            $output->writeln('<error>Requires Symfony 5.4 or above (see https://symfony.com/blog/new-in-symfony-5-4-filesystem-path-class)</error>');
+
+            return static::CODE_ERROR;
+        }
+
         $config = $this->buildGeneratorConfig([], $input, [
             'schema-dir' => 'paths.schemaDir',
         ]);

@@ -18,14 +18,25 @@ use Symfony\Component\Console\Output\StreamOutput;
 class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
 {
     /**
+     * @return bool
+     */
+    protected function isSymfonyBelow54(){
+        return !class_exists('\Symfony\Component\Filesystem\Path');
+    }
+
+    /**
      * @return void
      */
-    protected function setUp(): void
+    public function testMissingSymfonyComponentError(): void
     {
-        parent::setUp();
-        if (!class_exists('\Symfony\Component\Filesystem\Path')) {
-            $this->markTestSkipped("('\Symfony\Component\Console\Path not available");
+        if (!$this->isSymfonyBelow54()) {
+            $this->markTestSkipped("Tests error for Symfony below 5.4");
         }
+
+        [$exitCode, $result] = $this->runConfigPreviewCommand([]);
+        $this->assertEquals(1, $exitCode);
+        $expectedOutput = "Requires Symfony 5.4 or above (see https://symfony.com/blog/new-in-symfony-5-4-filesystem-path-class)\n";
+        $this->assertCommandOutput( $expectedOutput, $result);
     }
 
     /**
@@ -33,14 +44,19 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
      */
     public function testPrintNoSchema(): void
     {
-        $firstLine = extension_loaded('xdebug') ? "You are running perpl with xdebug enabled. This has a major impact on runtime performance.\n\n" : '';
+        if ($this->isSymfonyBelow54()) {
+            $this->markTestSkipped("Requires Symfony 5.4 or above");
+        }
+
         $rootDir = realpath(__DIR__ . '/../../../../../');
 
-        $this->assertCommandOutput(
+        $this->assertCommandResult(
             [
                 '--config-dir' => "$rootDir/tests/Fixtures/namespaced",
             ],
-            "{$firstLine}Directory structure and files according to current config (directories marked as relative change when perpl is called from a different path):
+            "No schema.xml file provided, skipping model class output (check --schema-dir argument or paths.schemaDir in config).
+
+Directory structure and files according to current config (directories marked as relative change when perpl is called from a different path):
 
 └── $rootDir/
      │  paths.schemaDir Schema XML files (input for migration:diff, database:reverse, etc) !from relative path!
@@ -58,15 +74,18 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
      */
     public function testPrintNamespacedFixtures(): void
     {
-        $firstLine = extension_loaded('xdebug') ? "You are running perpl with xdebug enabled. This has a major impact on runtime performance.\n\n" : '';
+        if ($this->isSymfonyBelow54()) {
+            $this->markTestSkipped("Requires Symfony 5.4 or above");
+        }
+
         $rootDir = realpath(__DIR__ . '/../../../../../');
 
-        $this->assertCommandOutput(
+        $this->assertCommandResult(
             [
                 '--schema-dir' => "$rootDir/tests/Fixtures/namespaced",
                 '--config-dir' => "$rootDir/tests/Fixtures/namespaced",
             ],
-            "{$firstLine}Directory structure and files according to current config (directories marked as relative change when perpl is called from a different path):
+            "Directory structure and files according to current config (directories marked as relative change when perpl is called from a different path):
 
 └── $rootDir/
      ├── generated-classes/
@@ -136,9 +155,11 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
     }
 
     /**
-     * @return void
+     * @param array $input
+     *
+     * @return array{int, string}
      */
-    protected function assertCommandOutput(array $input, string $expectedOutput): void
+    protected function runConfigPreviewCommand(array $input): array
     {
         $app = new Application('Propel', Propel::VERSION);
         $command = new PrintPropelDirectoriesCommand();
@@ -153,7 +174,32 @@ class PrintPropelDirectoriesCommandTest extends TestCaseFixtures
         $stream = $output->getStream();
         $result = rewind($stream) ? stream_get_contents($stream) : 'no output';
 
+        return [$exitCode, $result];
+    }
+
+    /**
+     * @return void
+     */
+    protected function assertCommandResult(array $input, string $expectedOutput): void
+    {
+        [$exitCode, $result] = $this->runConfigPreviewCommand($input);
+
         $this->assertEquals(0, $exitCode, "Command config:preview should exit successfully, but got output:\n\n " . $result);
-        $this->assertEquals($expectedOutput, $result);
+        $this->assertCommandOutput($expectedOutput, $result);
+    }
+
+    /**
+     * @param string $expectedOutput
+     * @param string $actualOutput
+     *
+     * @return void
+     */
+    protected function assertCommandOutput(string $expectedOutput, string $actualOutput): void
+    {
+        if (extension_loaded('xdebug')) {
+            $expectedOutput = "You are running perpl with xdebug enabled. This has a major impact on runtime performance.\n\n$expectedOutput";
+        }
+
+        $this->assertEquals($expectedOutput, $actualOutput);
     }
 }
