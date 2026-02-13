@@ -254,19 +254,6 @@ class Table extends ScopedMappingModel implements IdMethod
     }
 
     /**
-     * Returns a build property value for the database this table belongs to.
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    #[\Override]
-    public function getBuildProperty(string $name): string
-    {
-        return $this->database ? $this->database->getBuildProperty($name) : '';
-    }
-
-    /**
      * Executes behavior table modifiers.
      *
      * @return void
@@ -1147,9 +1134,9 @@ class Table extends ScopedMappingModel implements IdMethod
      * @return \Propel\Generator\Config\GeneratorConfigInterface|null
      */
     #[\Override]
-    public function getGeneratorConfig(): ?GeneratorConfigInterface
+    public function getGeneratorConfig(): GeneratorConfigInterface|null
     {
-        return $this->database->getGeneratorConfig();
+        return $this->database?->getGeneratorConfig();
     }
 
     /**

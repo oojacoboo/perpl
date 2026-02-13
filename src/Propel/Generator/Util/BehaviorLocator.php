@@ -46,7 +46,7 @@ class BehaviorLocator
     public function __construct(?GeneratorConfigInterface $config = null)
     {
         if ($config !== null) {
-            $this->composerDir = $config->get()['paths']['composerDir'];
+            $this->composerDir = $config->getConfigPropertyString('paths.composerDir');
         }
     }
 

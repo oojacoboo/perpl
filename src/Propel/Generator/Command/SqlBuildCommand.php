@@ -81,9 +81,10 @@ class SqlBuildCommand extends AbstractCommand
             }
         }
 
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
 
-        $this->createDirectory($generatorConfig->getSection('paths')['sqlDir']);
+        $sqlDir = $generatorConfig->getConfigPropertyString('paths.sqlDir', true);
+        $this->createDirectory($sqlDir);
 
         $manager = new SqlManager();
 
@@ -102,13 +103,13 @@ class SqlBuildCommand extends AbstractCommand
 
         $manager->setValidate($input->getOption('validate'));
         $manager->setGeneratorConfig($generatorConfig);
-        $manager->setSchemas($this->getSchemas($generatorConfig->getSection('paths')['schemaDir'], $generatorConfig->getSection('generator')['recursive']));
+        $manager->setSchemas($this->getSchemasFromConfig($generatorConfig));
         $manager->setLoggerClosure(function ($message) use ($input, $output): void {
             if ($input->getOption('verbose')) {
                 $output->writeln($message);
             }
         });
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['sqlDir']);
+        $manager->setWorkingDirectory($sqlDir);
 
         if (!$manager->isOverwriteSqlMap() && $manager->existSqlMap()) {
             $output->writeln("<info>sqldb.map won't be saved because it already exists. Remove it to generate a new map. Use --overwrite to force a overwrite.</info>");

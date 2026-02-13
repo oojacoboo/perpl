@@ -665,7 +665,7 @@ class QuickBuilder
     {
         $includes = [];
         $hashFromCwd = substr(sha1((string)getcwd()), 0, 10);
-        $dirName = sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . $hashFromCwd . '/';
+        $dirName = sys_get_temp_dir() . '/perplQuickBuild-' . Propel::VERSION . '-' . $hashFromCwd . '/';
         if (!is_dir($dirName)) {
             mkdir($dirName);
         }

@@ -59,6 +59,7 @@
         }
     },
     "bin": [
+        "bin/perpl",
         "bin/propel"
     ],
     "scripts": {

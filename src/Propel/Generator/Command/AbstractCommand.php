@@ -8,9 +8,11 @@
 
 namespace Propel\Generator\Command;
 
+use Propel\Common\Config\Exception\InvalidConfigurationException;
 use Propel\Generator\Config\GeneratorConfig;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -63,9 +65,11 @@ abstract class AbstractCommand extends Command
      * @param array|null $properties Properties to add to the configuration. They usually come from command line.
      * @param \Symfony\Component\Console\Input\InputInterface|null $input
      *
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     *
      * @return \Propel\Generator\Config\GeneratorConfig
      */
-    protected function getGeneratorConfig(?array $properties = null, ?InputInterface $input = null): GeneratorConfig
+    protected function buildGeneratorConfig(?array $properties = null, ?InputInterface $input = null): GeneratorConfig
     {
         if ($input === null) {
             return new GeneratorConfig(null, $properties);
@@ -79,7 +83,40 @@ abstract class AbstractCommand extends Command
             $properties['propel']['generator']['recursive'] = $input->getOption('recursive');
         }
 
-        return new GeneratorConfig($input->getOption('config-dir'), $properties);
+        $configDir = $input->getOption('config-dir');
+        try {
+            return new GeneratorConfig($configDir, extraConf: $properties);
+        } catch (InvalidConfigurationException $e) {
+            $userMessage = $this->getInvalidConfigurationExceptionUserMessage($e->getMessage(), $configDir);
+
+            throw new InvalidConfigurationException($userMessage);
+        }
+    }
+
+    /**
+     * Turn generic exception message into hint for users.
+     *
+     * @param string $message
+     * @param string $configDir
+     *
+     * @return string
+     */
+    protected function getInvalidConfigurationExceptionUserMessage(string $message, string $configDir): string
+    {
+        $matches = [];
+        $isMissingSection = preg_match('/The child config "([^"]+)" under "([^"]+)" must be configured\./', $message, $matches);
+        if ($isMissingSection) {
+            $message = "Configuration misses section or item: {$matches[2]}.{$matches[1]}.";
+        }
+
+        return "
+$message
+
+Hint:
+ - add missing value by command line argument (if applicable - check below or run `perpl <command> -h` for argument explanation)
+ - check perpl configuration files located at `$configDir` or point to the correct location using the `--config-dir` argument
+ - consult configuration documentation at https://perplorm.github.io/documentation/10-configuration.html
+";
     }
 
     /**
@@ -88,7 +125,7 @@ abstract class AbstractCommand extends Command
      * @param array<string>|string $directory Path to the input directory
      * @param bool $recursive Search for file inside the input directory and all subdirectories
      *
-     * @return array List of schema files
+     * @return array<\Symfony\Component\Finder\SplFileInfo> List of schema files
      */
     protected function getSchemas($directory, bool $recursive = false): array
     {
@@ -102,6 +139,38 @@ abstract class AbstractCommand extends Command
         }
 
         return iterator_to_array($finder->files());
+    }
+
+    /**
+     * @param \Propel\Generator\Config\GeneratorConfig $generatorConfig
+     * @param bool $required
+     *
+     * @throws \Symfony\Component\Console\Exception\MissingInputException
+     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     *
+     * @return array<\Symfony\Component\Finder\SplFileInfo>
+     */
+    protected function getSchemasFromConfig(GeneratorConfig $generatorConfig, bool $required = true): array
+    {
+        $schemaDir = $generatorConfig->getConfigPropertyString('paths.schemaDir');
+        if (!$schemaDir) {
+            throw new MissingInputException('Path to schema directory is missing. Use the --schema-dir option or the propel.paths.schemaDir configuration property to set it.');
+        }
+        $recursive = (bool)$generatorConfig->getConfigProperty('generator.recursive');
+        $schemas = $this->getSchemas($schemaDir, $recursive);
+        if ($schemas || !$required) {
+            return $schemas;
+        }
+        $errorMessage = "
+No schema files found in directory `$schemaDir`.
+
+Hint:
+ - Check location
+ - Update `propel.path.schemaDir` in the configuration file or --schema-dir command parameter
+ - To search subdirectories, set `propel.generator.recursive` in configuration file or run command with `--recursive`
+";
+
+        throw new InvalidConfigurationException($errorMessage);
     }
 
     /**
@@ -132,7 +201,7 @@ abstract class AbstractCommand extends Command
         try {
             $filesystem->mkdir($directory);
         } catch (IOException $e) {
-            throw new RuntimeException(sprintf('Unable to write the "%s" directory', $directory), 0, $e);
+            throw new RuntimeException(sprintf('Unable to create directory "%s"', $directory), 0, $e);
         }
     }
 

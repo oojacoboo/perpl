@@ -65,7 +65,9 @@ class ConfigConvertCommand extends AbstractCommand
             throw new RuntimeException(sprintf('Unable to write the "%s" output file', $outputFilePath));
         }
 
-        $loaderDir = $input->getOption('loader-script-dir') ?? $configManager->getConfigProperty('paths.loaderScriptDir') ?? $configManager->getConfigProperty('paths.phpConfDir');
+        $loaderDir = $input->getOption('loader-script-dir')
+            ?? $configManager->getConfigPropertyString('paths.loaderScriptDir')
+            ?? $configManager->getConfigPropertyString('paths.phpConfDir');
         $fileName = $this->createLoadDatabaseDummyScript($loaderDir, $output);
         $relativeLoaderScriptLocation = DIRECTORY_SEPARATOR . $this->getRelativePathToLoaderScript($loaderDir, $outputDir) . $fileName;
 
@@ -97,8 +99,8 @@ class ConfigConvertCommand extends AbstractCommand
     {
         $options = [];
         $options['connections'] = $configManager->getConnectionParametersArray();
-        $options['defaultConnection'] = $configManager->getSection('runtime')['defaultConnection'];
-        $options['log'] = $configManager->getSection('runtime')['log'];
+        $options['defaultConnection'] = $configManager->getConfigPropertyString('runtime.defaultConnection', true);
+        $options['log'] = $configManager->getConfigProperty('runtime.log');
         $options['profiler'] = $configManager->getConfigProperty('runtime.profiler');
 
         $stringifiedOptions = ArrayToPhpConverter::convert($options);

@@ -9,7 +9,6 @@
 namespace Propel\Generator\Command;
 
 use Propel\Generator\Manager\DataDictionaryExportManager;
-use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -60,8 +59,6 @@ class DataDictionaryExportCommand extends AbstractCommand
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @throws \Symfony\Component\Console\Exception\MissingInputException
-     *
      * @return int
      */
     #[\Override]
@@ -71,15 +68,11 @@ class DataDictionaryExportCommand extends AbstractCommand
         if ($this->hasInputOption(static::OPTION_SCHEMA_DIR, $input)) {
             $configOptions['propel']['paths']['schemaDir'] = $input->getOption(static::OPTION_SCHEMA_DIR);
         }
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
         $manager = new DataDictionaryExportManager();
         $manager->setGeneratorConfig($generatorConfig);
-        $schemaDir = $generatorConfig->getConfigProperty('paths.schemaDir');
-        if (!$schemaDir) {
-            throw new MissingInputException('Path to schema directory is missing. Use the --' . static::OPTION_SCHEMA_DIR . ' option or the propel.paths.schemaDir configuration property to set it.');
-        }
-        $recursive = $generatorConfig->getConfigProperty('generator.recursive');
-        $schemas = $this->getSchemas($schemaDir, $recursive);
+
+        $schemas = $this->getSchemasFromConfig($generatorConfig);
         $manager->setSchemas($schemas);
         $manager->setLoggerClosure(function ($message) use ($input, $output): void {
             if ($input->getOption('verbose')) {

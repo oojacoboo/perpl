@@ -286,9 +286,9 @@ class QueryBuilder extends AbstractOMBuilder
     /**
      * @return string|null
      */
-    private function getEntityNotFoundExceptionClass(): ?string
+    private function getEntityNotFoundExceptionClass(): string|null
     {
-        return $this->getBuildProperty('generator.objectModel.entityNotFoundExceptionClass');
+        return $this->getGeneratorConfig()?->getConfigPropertyString('generator.objectModel.entityNotFoundExceptionClass');
     }
 
     /**

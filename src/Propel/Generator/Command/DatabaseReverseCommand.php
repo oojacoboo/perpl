@@ -86,7 +86,7 @@ class DatabaseReverseCommand extends AbstractCommand
                 $input->setOption('database-name', self::DEFAULT_DATABASE_NAME);
             }
         }
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
 
         $this->createDirectory($input->getOption('output-dir'));
 

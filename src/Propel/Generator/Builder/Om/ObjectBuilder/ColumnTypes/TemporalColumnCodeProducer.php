@@ -119,7 +119,7 @@ class TemporalColumnCodeProducer extends ColumnCodeProducer
     {
         $configKey = $this->getTemporalTypeDefaultFormatConfigKey();
 
-        return $configKey ? $this->getBuildProperty($configKey) : null;
+        return $configKey ? $this->getBuildPropertyString($configKey) : null;
     }
 
     /**

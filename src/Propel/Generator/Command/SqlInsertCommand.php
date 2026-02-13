@@ -48,7 +48,7 @@ class SqlInsertCommand extends AbstractCommand
             $configOptions['propel']['paths']['sqlDir'] = $sqlDir;
         }
 
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
 
         $connections = [];
         $optionConnections = $input->getOption('connection');
@@ -67,7 +67,8 @@ class SqlInsertCommand extends AbstractCommand
                 $output->writeln($message);
             }
         });
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['sqlDir']);
+        $sqlDir = $generatorConfig->getConfigPropertyString('paths.sqlDir', true);
+        $manager->setWorkingDirectory($sqlDir);
 
         $manager->insertSql();
 

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author William Durand <william.durand1@gmail.com>
  */
-class MigrationMigrateCommand extends AbstractCommand
+class MigrationMigrateCommand extends AbstractMigrationCommand
 {
     /**
      * @var string
@@ -60,37 +60,11 @@ class MigrationMigrateCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configOptions = [];
+        $this->setUp($input);
+        $manager = $this->getMigrationManager();
 
-        if ($this->hasInputOption('output-dir', $input)) {
-            $configOptions['propel']['paths']['migrationDir'] = $input->getOption('output-dir');
-        }
-
-        if ($this->hasInputOption('migration-table', $input)) {
-            $configOptions['propel']['migrations']['tableName'] = $input->getOption('migration-table');
-        }
-
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
-
-        $this->createDirectory($generatorConfig->getSection('paths')['migrationDir']);
-
-        $manager = new MigrationManager();
-        $manager->setGeneratorConfig($generatorConfig);
-
-        $connections = [];
-        $optionConnections = $input->getOption('connection');
-        if (!$optionConnections) {
-            $connections = $generatorConfig->getBuildConnections();
-        } else {
-            foreach ($optionConnections as $connection) {
-                [$name, $dsn, $infos] = $this->parseConnection($connection);
-                $connections[$name] = array_merge(['dsn' => $dsn], $infos);
-            }
-        }
-
-        $manager->setConnections($connections);
-        $manager->setMigrationTable($generatorConfig->getSection('migrations')['tableName']);
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['migrationDir']);
+        $customConnectionData = $input->getOption('connection');
+        $this->setUpMigrationManagerAccess($customConnectionData);
 
         $version = $input->getOption(static::COMMAND_OPTION_MIGRATE_TO_VERSION);
         if ($version && $manager->isDatabaseVersionApplied($version)) {
