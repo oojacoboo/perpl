@@ -39,7 +39,7 @@ class SqlBuildCommand extends AbstractCommand
             ->addOption('composer-dir', null, InputOption::VALUE_REQUIRED, 'Directory in which your composer.json resides', null)
             ->setName('sql:build')
             ->setAliases(['build-sql'])
-            ->setDescription('Build SQL files');
+            ->setDescription('Create SQL script with DDL statements from schema.xml in --output-dir (or paths.schemaDir in config)');
     }
 
     /**
@@ -48,40 +48,14 @@ class SqlBuildCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configOptions = [];
-
-        foreach ($input->getOptions() as $key => $option) {
-            if ($option !== null) {
-                switch ($key) {
-                    case 'schema-dir':
-                        $configOptions['propel']['paths']['schemaDir'] = $option;
-
-                        break;
-                    case 'output-dir':
-                        $configOptions['propel']['paths']['sqlDir'] = $option;
-
-                        break;
-                    case 'schema-name':
-                        $configOptions['propel']['generator']['schema']['basename'] = $option;
-
-                        break;
-                    case 'table-prefix':
-                        $configOptions['propel']['generator']['tablePrefix'] = $option;
-
-                        break;
-                    case 'mysql-engine':
-                        $configOptions['propel']['database']['adapters']['mysql']['tableType'] = $option;
-
-                        break;
-                    case 'composer-dir':
-                        $configOptions['propel']['paths']['composerDir'] = $option;
-
-                        break;
-                }
-            }
-        }
-
-        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig([], $input, [
+            'schema-dir' => 'paths.schemaDir',
+            'output-dir' => 'paths.sqlDir',
+            'schema-name' => 'generator.schema.basename',
+            'table-prefix' => 'generator.tablePrefix',
+            'mysql-engine' => 'database.adapters.mysql.tableType',
+            'composer-dir' => 'paths.composerDir',
+        ]);
 
         $sqlDir = $generatorConfig->getConfigPropertyString('paths.sqlDir', true);
         $this->createDirectory($sqlDir);

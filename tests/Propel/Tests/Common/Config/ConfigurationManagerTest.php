@@ -859,6 +859,32 @@ EOF;
         $this->assertEquals(['mysource', 'yoursource'], $manager->getConfigProperty('generator.connections'));
         $this->assertEquals(['mysource', 'yoursource'], $manager->getConfigProperty('runtime.connections'));
     }
+
+
+  /**
+   * @return array<array>
+   */
+  public function deflateConfigurationDataProvider(): array
+  {
+    return [
+      [['foo' => 42], ['foo' => 42]],
+      [['foo.bar.baz' => 42], ['foo' => ['bar' => ['baz' => 42]]]],
+      [['foo.bar.baz' => 42, 'foo.fizz' => 43], ['foo' => ['bar' => ['baz' => 42], 'fizz' => 43]]]
+    ];
+  }
+
+  /**
+   * @dataProvider deflateConfigurationDataProvider
+   *
+   * @param array $flattenedConfig
+   * @param array $expectedArray
+   * @return void
+   */
+  public function testDeflateConfiguration(array $flattenedConfig, array $expectedArray)
+  {
+    $actualArray = ConfigurationManager::deflateConfigurationArray($flattenedConfig);
+    $this->assertEquals($expectedArray, $actualArray);
+  }
 }
 
 class TestableConfigurationManager extends ConfigurationManager

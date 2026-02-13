@@ -390,4 +390,29 @@ class ConfigurationManager
             $assertConnectionExists($configSection['defaultConnection'], $section, 'defaultConnection');
         }
     }
+
+    /**
+     * @param array<string, mixed> $maybeKeyValues
+     * @param string $separator
+     *
+     * @throws \RuntimeException
+     *
+     * @return array
+     */
+    public static function deflateConfigurationArray(array $maybeKeyValues, string $separator = '.'): array
+    {
+        if ($separator === '') {
+            throw new RuntimeException('Separator cannot be empty.');
+        }
+        $deflatedConfigs = [];
+        $wrapArray = fn (array $config, string $key) => [$key => $config];
+        foreach ($maybeKeyValues as $maybePath => $payload) {
+            $sections = explode($separator, $maybePath);
+            $lastKey = array_pop($sections);
+            $reversedSections = array_reverse($sections);
+            $deflatedConfigs[] = array_reduce($reversedSections, $wrapArray, [$lastKey => $payload]);
+        }
+
+        return array_merge_recursive(...$deflatedConfigs);
+    }
 }

@@ -45,11 +45,9 @@ class GraphvizGenerateCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configOptions = [];
-        if ($this->hasInputOption('schema-dir', $input)) {
-            $configOptions['propel']['paths']['schemaDir'] = $input->getOption('schema-dir');
-        }
-        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
+        $generatorConfig = $this->buildGeneratorConfig([], $input, [
+            'schema-dir' => 'paths.schemaDir',
+        ]);
 
         $this->createDirectory($input->getOption('output-dir'));
 
