@@ -104,6 +104,7 @@ jobs:
                   file: tests/coverage.xml
 
     static-analysis:
+        name: 'Stan & Psalm'
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v3
@@ -121,6 +122,7 @@ jobs:
               run: composer psalm -- --php-version=${{ steps.build-container.outputs.php-version }}
 
     code-style:
+        name: 'Code Style (PHPCS)'
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v3
@@ -133,8 +135,23 @@ jobs:
             - name: Code Style
               run: composer cs-check
 
-    model-code-style:
+    generated-code-style:
         runs-on: ubuntu-24.04
+        strategy:
+          fail-fast: false
+          matrix:
+            type: ['query', 'model']
+            check: ['PHPCS', 'Stan']
+            include:
+              - check: PHPCS
+                command: 'cs-check'
+              - check: Stan
+                command: 'stan -- -a autoload.php.dist'
+              - type: query
+                file-pattern: '*Query.php'
+              - type: model
+                file-pattern: '*[^Query].php'
+        name: '${{ matrix.check }} on ${{ matrix.type }} code'
         steps:
             - uses: actions/checkout@v3
             - id: build-container
@@ -143,52 +160,7 @@ jobs:
                 php-version: 8.4
                 symfony-version: 6-max
                 cache-key-suffix: cs
-            - name: Lint Model Code
+            - name: Run checks on generated code
               run: |
                 bin/perpl test:prepare --vendor=sqlite --dsn='sqlite:/tmp/perpl.sq3' --exclude-database \
-                && composer cs-check tests/Fixtures/bookstore/build/classes/Propel/Tests/Bookstore/Base/*[^Query].php
-
-    model-static-analysis:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v3
-            - id: build-container
-              uses: ./.github/actions/setup-php
-              with:
-                php-version: 8.4
-                symfony-version: 6-max
-                cache-key-suffix: cs
-            - name: Analyze Model Code
-              run: |
-                bin/perpl test:prepare --vendor=sqlite --dsn='sqlite:/tmp/perpl.sq3' --exclude-database \
-                && composer stan -- -a autoload.php.dist tests/Fixtures/bookstore/build/classes/Propel/Tests/Bookstore/Base/*[^Query].php
-
-    query-code-style:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v3
-            - id: build-container
-              uses: ./.github/actions/setup-php
-              with:
-                php-version: 8.4
-                symfony-version: 6-max
-                cache-key-suffix: cs
-            - name: Lint Query Code
-              run: |
-                bin/perpl test:prepare --vendor=sqlite --dsn='sqlite:/tmp/perpl.sq3' --exclude-database \
-                && composer cs-check tests/Fixtures/bookstore/build/classes/Propel/Tests/Bookstore/Base/*Query.php
-
-    query-static-analysis:
-        runs-on: ubuntu-24.04
-        steps:
-            - uses: actions/checkout@v3
-            - id: build-container
-              uses: ./.github/actions/setup-php
-              with:
-                php-version: 8.4
-                symfony-version: 6-max
-                cache-key-suffix: cs
-            - name: Analyze Query Code
-              run: |
-                bin/perpl test:prepare --vendor=sqlite --dsn='sqlite:/tmp/perpl.sq3' --exclude-database \
-                && composer stan -- -a autoload.php.dist tests/Fixtures/bookstore/build/classes/Propel/Tests/Bookstore/Base/*Query.php
+                && composer ${{ matrix.command }} tests/Fixtures/bookstore/build/classes/Propel/Tests/Bookstore/Base/${{ matrix.file-pattern }}
