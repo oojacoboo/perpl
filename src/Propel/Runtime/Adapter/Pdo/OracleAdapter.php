@@ -8,6 +8,7 @@
 
 namespace Propel\Runtime\Adapter\Pdo;
 
+use PDO;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
@@ -31,6 +32,18 @@ use RuntimeException;
  */
 class OracleAdapter extends PdoAdapter implements SqlAdapterInterface
 {
+    /**
+     * @return class-string<\PDO>
+     */
+    #[\Override]
+    public function getPdoSubclass(): string
+    {
+        /** @var class-string<\PDO> $class */
+        $class = class_exists('\PDO\Odbc') ? '\PDO\Odbc' : PDO::class;
+
+        return $class;
+    }
+
     /**
      * This method is called after a connection was created to run necessary
      * post-initialization queries or code.
@@ -134,7 +147,7 @@ class OracleAdapter extends PdoAdapter implements SqlAdapterInterface
         if ($offset > 0) {
             $sql .= ' B.PROPEL_ROWNUM > ' . $offset;
             if ($limit > 0) {
-                $sql .= ' AND B.PROPEL_ROWNUM <= ' . ( $offset + $limit );
+                $sql .= ' AND B.PROPEL_ROWNUM <= ' . ($offset + $limit);
             }
         } else {
             $sql .= ' B.PROPEL_ROWNUM <= ' . $limit;

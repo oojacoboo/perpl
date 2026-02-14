@@ -44,6 +44,14 @@ class PdoConnection implements ConnectionInterface
     }
 
     /**
+     * @return \PDO
+     */
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
+
+    /**
      * @param string $name The datasource name associated to this connection
      *
      * @return void
@@ -70,8 +78,9 @@ class PdoConnection implements ConnectionInterface
      * @param string|null $user
      * @param string|null $password
      * @param array|null $options
+     * @param class-string<\PDO>|null $pdoSubclass
      */
-    public function __construct(string $dsn, ?string $user = null, ?string $password = null, ?array $options = null)
+    public function __construct(string $dsn, ?string $user = null, ?string $password = null, ?array $options = null, ?string $pdoSubclass = null)
     {
         // Convert option keys from a string to a PDO:: constant
         $pdoOptions = [];
@@ -82,7 +91,8 @@ class PdoConnection implements ConnectionInterface
             }
         }
 
-        $this->pdo = new PDO($dsn, $user, $password, $pdoOptions);
+        $pdoSubclass ??= PDO::class;
+        $this->pdo = new $pdoSubclass($dsn, $user, $password, $pdoOptions);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 

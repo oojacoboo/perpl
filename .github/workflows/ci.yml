@@ -106,13 +106,21 @@ jobs:
     static-analysis:
         name: 'Stan & Psalm'
         runs-on: ubuntu-24.04
+        strategy:
+          fail-fast: false
+          matrix:
+            include:
+              - php-version: '8.1'
+                symfony-version: '6-max'
+              - php-version: '8.5'
+                symfony-version: '8-max'
         steps:
             - uses: actions/checkout@v3
             - id: build-container
               uses: ./.github/actions/setup-php
               with:
-                php-version: 8.1
-                symfony-version: 6-max
+                php-version: ${{ matrix.php-version }}
+                symfony-version: ${{ matrix.symfony-version }}
                 cache-key-suffix: sa
             - name: PHPStan
               env:

@@ -209,4 +209,9 @@ interface AdapterInterface
      * @return string
      */
     public function getGroupBy(Criteria $criteria): string;
+
+    /**
+     * @return class-string<\PDO>
+     */
+    public function getPdoSubclass(): string;
 }

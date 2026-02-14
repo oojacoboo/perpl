@@ -284,7 +284,7 @@ class QuickBuilder
         $adapter = $adapter ?? new SqliteAdapter();
         $classTargets = $classTargets ?? $this->classTargets;
 
-        $pdo = new PdoConnection($dsn, $user, $pass);
+        $pdo = new PdoConnection($dsn, $user, $pass, [], $adapter->getPdoSubclass());
         $con = new ConnectionWrapper($pdo);
         $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         /** @phpstan-var \Propel\Runtime\Adapter\Pdo\SqliteAdapter $adapter */

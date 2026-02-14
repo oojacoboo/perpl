@@ -27,6 +27,18 @@ use Propel\Runtime\Map\ColumnMap;
 class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
 {
     /**
+     * @return class-string<\PDO>
+     */
+    #[\Override]
+    public function getPdoSubclass(): string
+    {
+        /** @var class-string<\PDO> $class */
+        $class = class_exists('\PDO\Mysql') ? '\PDO\Mysql' : PDO::class;
+
+        return $class;
+    }
+
+    /**
      * Returns SQL which concatenates the second string to the first.
      *
      * @param string $s1 String to concatenate.
