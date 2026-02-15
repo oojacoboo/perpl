@@ -8,6 +8,7 @@
 
 namespace Propel\Runtime\Adapter\Pdo;
 
+use PDO;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\AdapterInterface;
@@ -25,6 +26,18 @@ use RuntimeException;
  */
 class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
 {
+    /**
+     * @return class-string<\PDO>
+     */
+    #[\Override]
+    public function getPdoSubclass(): string
+    {
+        /** @var class-string<\PDO> $class */
+        $class = class_exists('\PDO\Pgsql') ? '\PDO\Pgsql' : PDO::class;
+
+        return $class;
+    }
+
     /**
      * @see PdoAdapter::SUPPORTS_ALIASES_IN_DELETE
      *

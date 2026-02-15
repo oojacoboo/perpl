@@ -34,7 +34,6 @@ class GeneratorConfigTest extends TestCase
     {
         $ref = new ReflectionClass('\\Propel\\Common\\Config\\ConfigurationManager');
         $refProp = $ref->getProperty('config');
-        $refProp->setAccessible(true);
         $refProp->setValue($this->generatorConfig, $config);
     }
 

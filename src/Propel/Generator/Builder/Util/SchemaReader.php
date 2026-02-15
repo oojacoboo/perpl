@@ -178,7 +178,7 @@ class SchemaReader
         }
 
         // store current schema file path
-        $this->schemasTagsStack[$xmlFile] = [];
+        $this->schemasTagsStack[$xmlFile ?? ''] = []; // HACK - fixes "Using null as an array offset is deprecated", but can $xmlString really be null?
         $this->currentXmlFile = $xmlFile;
 
         $parserStash = $this->parser;
@@ -195,7 +195,9 @@ class SchemaReader
                 ),
             );
         }
-        xml_parser_free($this->parser);
+        if (version_compare(phpversion(), '8.1', '<')) {
+            xml_parser_free($this->parser);
+        }
         $this->parser = $parserStash;
 
         array_pop($this->schemasTagsStack);

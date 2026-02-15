@@ -281,7 +281,8 @@ class ObjectCollection extends Collection
         $keyGetterMethod = 'get' . $keyColumn;
         $valueGetterMethod = ($valueColumn === null) ? '__toString' : ('get' . $valueColumn);
         foreach ($this as $obj) {
-            $ret[$obj->$keyGetterMethod()] = $obj->$valueGetterMethod();
+            $key = $obj->$keyGetterMethod();
+            $ret[$key ?? 'null'] = $obj->$valueGetterMethod();
         }
 
         return $ret;

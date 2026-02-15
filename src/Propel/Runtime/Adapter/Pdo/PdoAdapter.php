@@ -59,31 +59,58 @@ abstract class PdoAdapter
         $dsn = $params['dsn'];
         $user = $params['user'] ?? null;
         $password = $params['password'] ?? null;
+        $driverOptions = is_array($params['options'] ?? null) ? $this->buildDriverOptions($params['options'], $dsn) : [];
 
-        // load any driver options from the config file
-        // driver options are those PDO settings that have to be passed during the connection construction
-        $driverOptions = [];
-        if (isset($params['options']) && is_array($params['options'])) {
-            foreach ($params['options'] as $option => $optiondata) {
-                $value = $optiondata;
-                if (is_string($value) && strpos($value, '::') !== false) {
-                    if (!defined($value)) {
-                        throw new InvalidArgumentException(sprintf('Error processing driver options for dsn "%s"', $dsn));
-                    }
-                    $value = constant($value);
-                }
-                $driverOptions[$option] = $value;
-            }
-        }
+        $pdoSubclass = $this->getPdoSubclass();
 
         try {
-            $con = new PdoConnection($dsn, $user, $password, $driverOptions);
+            $con = new PdoConnection($dsn, $user, $password, $driverOptions, $pdoSubclass);
             $this->initConnection($con, isset($params['settings']) && is_array($params['settings']) ? $params['settings'] : []);
         } catch (PDOException $e) {
             throw new AdapterException('Unable to open PDO connection', 0, $e);
         }
 
         return $con;
+    }
+
+    /**
+     * @return class-string<\PDO>
+     */
+    public function getPdoSubclass(): string
+    {
+        return PDO::class;
+    }
+
+    /**
+     * Load driver options from the config file parameters.
+     *
+     * Driver options are those PDO settings that have to be passed during the connection construction.
+     *
+     * @param array $options
+     * @param string $dsn
+     *
+     * @throws \Propel\Runtime\Exception\InvalidArgumentException
+     *
+     * @return array
+     */
+    protected function buildDriverOptions(array $options, string $dsn): array
+    {
+        $driverOptions = [];
+        foreach ($options as $option => $value) {
+            if (!is_string($value) || strpos($value, '::') === false) {
+                $driverOptions[$option] = $value;
+
+                continue;
+            }
+
+            if (!defined($value)) {
+                throw new InvalidArgumentException(sprintf('Error processing driver options for dsn "%s"', $dsn));
+            }
+
+            $driverOptions[$option] = constant($value);
+        }
+
+        return $driverOptions;
     }
 
     /**

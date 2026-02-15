@@ -102,16 +102,12 @@ abstract class AbstractFormatterWithHydration extends AbstractFormatter
             }
 
             // hydrate related object or take it from registry
-            $key = $modelWith->getTableMap()::getPrimaryKeyHashFromRow($row, $col, $indexType);
+            $key = $modelWith->getTableMap()::getPrimaryKeyHashFromRow($row, $col, $indexType) ?? 'null';
             // we hydrate the main object even in case of a one-to-many relationship
             // in order to get the $col variable increased anyway
             $secondaryObject = $this->getSingleObjectFromRow($row, $class, $col);
             if (!isset($this->alreadyHydratedObjects[$relAlias][$key])) {
-                if ($secondaryObject->isPrimaryKeyNull()) {
-                    $this->alreadyHydratedObjects[$relAlias][$key] = [];
-                } else {
-                    $this->alreadyHydratedObjects[$relAlias][$key] = $secondaryObject->toArray();
-                }
+                $this->alreadyHydratedObjects[$relAlias][$key] = $secondaryObject->isPrimaryKeyNull() ? [] : $secondaryObject->toArray();
             }
 
             if ($modelWith->isPrimary()) {
