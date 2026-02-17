@@ -16,5 +16,17 @@
         <exclude name="SprykerStrict.TypeHints.ParameterTypeHint"/>
         <exclude name="SprykerStrict.TypeHints.PropertyTypeHint"/>
         <exclude name="SprykerStrict.TypeHints.ReturnTypeHint"/>
+        <exclude name="Spryker.Internal.SprykerBridge"/>
+        <exclude name="Spryker.Internal.SprykerFacade"/>
+        <exclude name="Spryker.Internal.SprykerNoDemoshop"/>
+        <exclude name="Spryker.Internal.SprykerPreferStaticOverSelf"/>
+        <exclude name="Spryker.Commenting.DocBlockApiAnnotation"/> <!-- Another Spryker internal function. -->
+    </rule>
+
+    <rule ref="Spryker.Internal.SprykerDisallowFunctions">
+        <properties>
+            <!-- running this rule without phpVersion doubles runtime (in spryker/code-sniffer 0.17.30) -->
+            <property name="phpVersion" value="8.1"/>
+        </properties>
     </rule>
 </ruleset>
