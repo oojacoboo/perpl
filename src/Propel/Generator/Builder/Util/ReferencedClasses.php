@@ -411,14 +411,18 @@ class ReferencedClasses
         foreach ($types as $key => $typeName) {
             if (isset($legacyPrimitiveMap[$typeName])) {
                 $types[$key] = $legacyPrimitiveMap[$typeName];
+
                 continue;
             }
+
             if (!PropelTypes::isPhpObjectType($typeName) || $typeName === 'null') {
                 continue;
             }
+
             if (is_subclass_of($typeName, DateTimeInterface::class)) {
                 $typeName = DateTimeInterface::class;
             }
+
             $types[$key] = $this->registerClassByFullyQualifiedName($typeName);
         }
 
