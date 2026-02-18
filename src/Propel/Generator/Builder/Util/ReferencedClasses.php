@@ -403,8 +403,17 @@ class ReferencedClasses
     {
         $docTypeWithoutGenerics = preg_replace('/<[^>]*>/', '', $docType);
         $types = explode('|', $docTypeWithoutGenerics);
+        $legacyPrimitiveMap = [
+            'boolean' => 'bool',
+            'double' => 'float',
+            'integer' => 'int',
+        ];
         foreach ($types as $key => $typeName) {
-            if (!PropelTypes::isPhpObjectType($typeName)) {
+            if (isset($legacyPrimitiveMap[$typeName])) {
+                $types[$key] = $legacyPrimitiveMap[$typeName];
+                continue;
+            }
+            if (!PropelTypes::isPhpObjectType($typeName) || $typeName === 'null') {
                 continue;
             }
             if (is_subclass_of($typeName, DateTimeInterface::class)) {

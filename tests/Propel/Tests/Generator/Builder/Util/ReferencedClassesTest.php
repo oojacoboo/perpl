@@ -25,6 +25,15 @@ class ReferencedClassesTest extends TestCase
             ['Propel\Runtime\Propel', 'Propel', ['Propel\Runtime' => ['Propel' => 'Propel']]],
             ['DateTime', 'DateTimeInterface', ['' => ['DateTimeInterface' => 'DateTimeInterface']]],
             ['string|DateTimeImmutable', 'string|DateTimeInterface', ['' => ['DateTimeInterface' => 'DateTimeInterface']]],
+            // Legacy PHP type aliases must be normalized to their modern equivalents
+            ['boolean', 'bool', []],
+            ['double', 'float', []],
+            ['integer', 'int', []],
+            // Compound types with null must not register null as a class
+            ['boolean|null', 'bool|null', []],
+            ['double|null', 'float|null', []],
+            ['integer|null', 'int|null', []],
+            ['string|null', 'string|null', []],
         ];
     }
 
