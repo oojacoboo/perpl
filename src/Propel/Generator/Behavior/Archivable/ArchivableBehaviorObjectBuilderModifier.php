@@ -127,7 +127,7 @@ class ArchivableBehaviorObjectBuilderModifier
         if ($this->behavior->isArchiveOnDelete()) {
             return $this->behavior->renderTemplate('objectPreDelete', [
                 'queryClassName' => $builder->getQueryClassName(),
-                'isAddHooks' => $builder->getGeneratorConfig()->get()['generator']['objectModel']['addHooks'],
+                'isAddHooks' => (bool)$builder->getGeneratorConfig()->getConfigProperty('generator.objectModel.addHooks'),
             ]);
         }
 

@@ -284,7 +284,7 @@ class QuickBuilder
         $adapter = $adapter ?? new SqliteAdapter();
         $classTargets = $classTargets ?? $this->classTargets;
 
-        $pdo = new PdoConnection($dsn, $user, $pass);
+        $pdo = new PdoConnection($dsn, $user, $pass, [], $adapter->getPdoSubclass());
         $con = new ConnectionWrapper($pdo);
         $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         /** @phpstan-var \Propel\Runtime\Adapter\Pdo\SqliteAdapter $adapter */
@@ -665,7 +665,7 @@ class QuickBuilder
     {
         $includes = [];
         $hashFromCwd = substr(sha1((string)getcwd()), 0, 10);
-        $dirName = sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . $hashFromCwd . '/';
+        $dirName = sys_get_temp_dir() . '/perplQuickBuild-' . Propel::VERSION . '-' . $hashFromCwd . '/';
         if (!is_dir($dirName)) {
             mkdir($dirName);
         }

@@ -254,19 +254,6 @@ class Table extends ScopedMappingModel implements IdMethod
     }
 
     /**
-     * Returns a build property value for the database this table belongs to.
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    #[\Override]
-    public function getBuildProperty(string $name): string
-    {
-        return $this->database ? $this->database->getBuildProperty($name) : '';
-    }
-
-    /**
      * Executes behavior table modifiers.
      *
      * @return void
@@ -945,7 +932,7 @@ class Table extends ScopedMappingModel implements IdMethod
         /** @var array<\Propel\Generator\Model\Column> $pks */
         $pks = [];
         foreach ($this->getPrimaryKey() as $primaryKey) {
-            if ($primaryKey->isNotNull() && !$primaryKey->hasDefaultValue() && !in_array($primaryKey, $primaryKeys, true)) {
+            if ($primaryKey->isNotNull() && !$primaryKey->hasDefault() && !in_array($primaryKey, $primaryKeys, true)) {
                 $pks[] = $primaryKey;
             }
         }
@@ -1147,9 +1134,9 @@ class Table extends ScopedMappingModel implements IdMethod
      * @return \Propel\Generator\Config\GeneratorConfigInterface|null
      */
     #[\Override]
-    public function getGeneratorConfig(): ?GeneratorConfigInterface
+    public function getGeneratorConfig(): GeneratorConfigInterface|null
     {
-        return $this->database->getGeneratorConfig();
+        return $this->database?->getGeneratorConfig();
     }
 
     /**
@@ -1603,6 +1590,16 @@ class Table extends ScopedMappingModel implements IdMethod
     public function getColumns(): array
     {
         return $this->columns;
+    }
+
+    /**
+     * Get columns that are not lazy-load.
+     *
+     * @return array<\Propel\Generator\Model\Column>
+     */
+    public function getEagerColumns(): array
+    {
+        return array_filter($this->columns, fn (Column $col) => !$col->isLazyLoad());
     }
 
     /**

@@ -8,6 +8,7 @@
 
 namespace Propel\Generator\Model;
 
+use Propel\Generator\Config\GeneratorConfigInterface;
 use Propel\Generator\Exception\LogicException;
 
 /**
@@ -61,9 +62,17 @@ abstract class ScopedMappingModel extends MappingModel
      *
      * @param string $name
      *
-     * @return string
+     * @return array|scalar|null
      */
-    abstract protected function getBuildProperty(string $name): string;
+    public function getBuildProperty(string $name): mixed
+    {
+        return $this->getGeneratorConfig()?->getConfigProperty($name) ?? null;
+    }
+
+    /**
+     * @return \Propel\Generator\Config\GeneratorConfigInterface|null
+     */
+    abstract public function getGeneratorConfig(): ?GeneratorConfigInterface;
 
     /**
      * @return void
@@ -130,7 +139,8 @@ abstract class ScopedMappingModel extends MappingModel
         }
 
         $this->namespace = $namespace;
-        if ($namespace && (!$this->package || $this->packageOverridden) && $this->getBuildProperty('generator.namespaceAutoPackage')) {
+        $isNamespaceAutoPackager = (bool)$this->getBuildProperty('generator.namespaceAutoPackage');
+        if ($namespace && (!$this->package || $this->packageOverridden) && $isNamespaceAutoPackager) {
             $this->package = str_replace('\\', '.', $namespace);
             $this->packageOverridden = true;
         }

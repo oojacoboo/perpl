@@ -177,7 +177,7 @@ class Database extends ScopedMappingModel
             $this->identifierQuoting = $this->booleanValue($this->getAttribute('identifierQuoting'));
         }
 
-        $this->tablePrefix = $this->getAttribute('tablePrefix', $this->getBuildProperty('generator.tablePrefix'));
+        $this->tablePrefix = $this->getAttribute('tablePrefix', $this->getGeneratorConfig()?->getConfigPropertyString('generator.tablePrefix'));
         $this->defaultStringFormat = $this->getAttribute('defaultStringFormat', static::DEFAULT_STRING_FORMAT);
     }
 
@@ -806,31 +806,7 @@ class Database extends ScopedMappingModel
     #[\Override]
     public function getGeneratorConfig(): ?GeneratorConfigInterface
     {
-        if ($this->parentSchema !== null) {
-            return $this->parentSchema->getGeneratorConfig();
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the configuration property identified by its name.
-     *
-     * @see \Propel\Common\Config\ConfigurationManager::getConfigProperty() method
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    #[\Override]
-    public function getBuildProperty(string $name): string
-    {
-        $config = $this->getGeneratorConfig();
-        if ($config) {
-            return (string)$config->getConfigProperty($name);
-        }
-
-        return '';
+        return $this->parentSchema?->getGeneratorConfig();
     }
 
     /**

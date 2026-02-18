@@ -785,7 +785,7 @@ class Criteria
     }
 
     /**
-     * @deprecated use aptly named {@see static::addFilter()} or {@see static::setUpdateValue()}/{@see static::setUpdateExpression()}.
+     * @deprecated use aptly named {@see static::addAnd()} or {@see static::setUpdateValue()}/{@see static::setUpdateExpression()}.
      * Defaults to {@see static::addFilter}.
      *
      * @param \Propel\Runtime\ActiveQuery\FilterExpression\ColumnFilterInterface|\Propel\Runtime\ActiveQuery\ColumnResolver\ColumnExpression\AbstractColumnExpression|string|null $columnOrClause The column to run the comparison on, or a Criterion object.

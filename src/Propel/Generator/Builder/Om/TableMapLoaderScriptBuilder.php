@@ -139,7 +139,8 @@ class TableMapLoaderScriptBuilder
      */
     public function getFile(): SplFileInfo
     {
-        $configDir = $this->generatorConfig->getConfigProperty('paths.loaderScriptDir') ?? $this->generatorConfig->getConfigProperty('paths.phpConfDir');
+        $configDir = $this->generatorConfig->getConfigPropertyString('paths.loaderScriptDir')
+            ?? $this->generatorConfig->getConfigPropertyString('paths.phpConfDir', true);
 
         return new SplFileInfo($configDir . DIRECTORY_SEPARATOR . self::FILENAME);
     }

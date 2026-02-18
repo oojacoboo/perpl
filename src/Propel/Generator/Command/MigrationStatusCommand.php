@@ -8,7 +8,6 @@
 
 namespace Propel\Generator\Command;
 
-use Propel\Generator\Manager\MigrationManager;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author William Durand <william.durand1@gmail.com>
  */
-class MigrationStatusCommand extends AbstractCommand
+class MigrationStatusCommand extends AbstractMigrationCommand
 {
     /**
      * @var string
@@ -32,7 +31,7 @@ class MigrationStatusCommand extends AbstractCommand
      * @inheritDoc
      */
     #[\Override]
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -52,38 +51,11 @@ class MigrationStatusCommand extends AbstractCommand
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configOptions = [];
+        $this->setUp($input);
+        $manager = $this->getMigrationManager();
 
-        if ($this->hasInputOption('output-dir', $input)) {
-            $configOptions['propel']['paths']['migrationDir'] = $input->getOption('output-dir');
-        }
-
-        if ($this->hasInputOption('migration-table', $input)) {
-            $configOptions['propel']['migrations']['tableName'] = $input->getOption('migration-table');
-        }
-
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
-
-        $this->createDirectory($generatorConfig->getSection('paths')['migrationDir']);
-
-        $manager = new MigrationManager();
-        $manager->setGeneratorConfig($generatorConfig);
-
-        $connections = [];
-        /** @var array<string> $optionConnections */
-        $optionConnections = $input->getOption('connection');
-        if (!$optionConnections) {
-            $connections = $generatorConfig->getBuildConnections();
-        } else {
-            foreach ($optionConnections as $connection) {
-                [$name, $dsn, $infos] = $this->parseConnection($connection);
-                $connections[$name] = array_merge(['dsn' => $dsn], $infos);
-            }
-        }
-
-        $manager->setConnections($connections);
-        $manager->setMigrationTable($generatorConfig->getSection('migrations')['tableName']);
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['migrationDir']);
+        $customConnectionData = $input->getOption('connection');
+        $this->setUpMigrationManagerAccess($customConnectionData);
 
         $oldestMigrationTimestamp = $manager->getOldestDatabaseVersion();
         if ($input->getOption(static::COMMAND_OPTION_LAST_VERSION)) {
@@ -128,7 +100,6 @@ class MigrationStatusCommand extends AbstractCommand
         }
 
         $output->writeln('Listing Migration files...');
-        $dir = $generatorConfig->getSection('paths')['migrationDir'];
         $migrationTimestamps = $manager->getMigrationTimestamps();
         $nbExistingMigrations = count($migrationTimestamps);
 
@@ -136,7 +107,7 @@ class MigrationStatusCommand extends AbstractCommand
             $output->writeln(sprintf(
                 '%d valid migration classes found in "%s"',
                 $nbExistingMigrations,
-                $dir,
+                $this->migrationDir,
             ));
 
             $validTimestamps = $manager->getValidMigrationTimestamps();
@@ -160,7 +131,7 @@ class MigrationStatusCommand extends AbstractCommand
                 }
             }
         } else {
-            $output->writeln(sprintf('No migration file found in "%s".', $dir));
+            $output->writeln("No migration file found in '{$this->migrationDir}'");
 
             return static::CODE_ERROR;
         }

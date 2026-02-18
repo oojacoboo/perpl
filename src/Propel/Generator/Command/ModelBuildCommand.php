@@ -23,7 +23,7 @@ class ModelBuildCommand extends AbstractCommand
      * @inheritDoc
      */
     #[\Override]
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -135,19 +135,22 @@ class ModelBuildCommand extends AbstractCommand
             }
         }
 
-        $generatorConfig = $this->getGeneratorConfig($configOptions, $input);
-        $this->createDirectory($generatorConfig->getSection('paths')['phpDir']);
+        $generatorConfig = $this->buildGeneratorConfig($configOptions, $input);
+        $this->createDirectory($generatorConfig->getConfigPropertyString('paths.phpDir', true));
 
         $manager = new ModelManager();
         $manager->setFilesystem($this->getFilesystem());
         $manager->setGeneratorConfig($generatorConfig);
-        $manager->setSchemas($this->getSchemas($generatorConfig->getSection('paths')['schemaDir'], $generatorConfig->getSection('generator')['recursive']));
+
+        $schemas = $this->getSchemasFromConfig($generatorConfig);
+        $manager->setSchemas($schemas);
+
         $manager->setLoggerClosure(function ($message) use ($input, $output): void {
             if ($input->getOption('verbose')) {
                 $output->writeln($message);
             }
         });
-        $manager->setWorkingDirectory($generatorConfig->getSection('paths')['phpDir']);
+        $manager->setWorkingDirectory($generatorConfig->getConfigPropertyString('paths.phpDir', true));
 
         $manager->build();
 
